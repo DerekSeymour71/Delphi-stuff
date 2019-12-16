@@ -50,7 +50,7 @@ type
   end;
 
 
-
+  function GetPrefixSums(const A : TIntegerArray) : TPrefixSum;
 
 var
   Form7: TForm7;
@@ -59,6 +59,11 @@ var
 
 
 implementation
+
+  function GetPrefixSums(const A : TIntegerArray) : TPrefixSum;
+  begin
+    result := TPrefixSum.create(A);
+  end;
 
 
 procedure TPrefixSum.MakePrefixArray;
