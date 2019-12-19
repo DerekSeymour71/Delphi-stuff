@@ -192,7 +192,10 @@ sum = A[j+1] - A[(i+1)-1]   // 15 - 1 = 14
 I don't have to keep adding it up
 
 2+3+4       3 index for loop compared to 2 index
-2+3+4+5     4 index for loop compared to 2 index      *)
+2+3+4+5     4 index for loop compared to 2 index   
+
+
+I'm no longer doing a brute force o(n) on any slice if I do this right, at most it will be two indexs for any size of slice*)
 
 
 
