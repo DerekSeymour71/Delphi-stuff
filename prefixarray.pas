@@ -281,6 +281,20 @@ end;
    1,2, -10,10,-20,20     average of current 2 + [average of rest of slice if <0  negative]  ?
    -10,-10,               average of current 2 + [average of rest of slice if >0  positive]  ?
 
+
+
+    1,2 + [total of 3rd element to end, if there is one] < [current total] ?
+
+        if yes, loop to find when it become greater than [1,2]
+
+        then pick the previous index
+
+
+
+
+
+
+
    tricky
 
   *)
