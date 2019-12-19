@@ -266,6 +266,23 @@ end;
 
   this should return 2
 
+  0 1 2 3 4
+  3 5 8 4 10
+
+  3 8 16 20 30
+
+
+   1,2
+   1,-10
+  -10,1
+  -10,-10
+
+
+   1,2, -10,10,-20,20     average of current 2 + [average of rest of slice if <0  negative]  ?
+   -10,-10,               average of current 2 + [average of rest of slice if >0  positive]  ?
+
+   tricky
+
   *)
 
 end.
