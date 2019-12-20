@@ -278,24 +278,49 @@ end;
   -10,-10
 
 
-   1,2, -10,10,-20,20     average of current 2 + [average of rest of slice if <0  negative]  ?
-   -10,-10,               average of current 2 + [average of rest of slice if >0  positive]  ?
+   [2,3, -10,10,-20,-200][200,200,-500]
 
 
 
-    1,2 + [total of 3rd element to end, if there is one] < [current total] ?
+   new average = old average + (new value - old average) / new size
 
-        if yes, loop to find when it become greater than [1,2]
-
-        then pick the previous index
+                 2.5  + (-10 - 2.5) /3
 
 
 
+   //returns a new average of 2 slices + one new value;
+   function NewAverage(const OldAverage : double; const NewValue : double) : double;
+   begin
+     result := OldAverage + (NewValue - OldAverage) /3 ;
+   end;
+
+
+   12,12,34,45,-1000,12,-100
+
+
+   subProblem = if you have negatives, you need to treat them differenly
+
+
+    average of every 2 pair
+
+
+    0    1      2     3     4    5      6      7       8
+    5    10     10    5     5    -10   - 10    - 5    -5
+
+    7.5  10    7.5    2.5  -2.5  -10  -7.5  -2.5
+
+
+    if we say, start at -2.5, as it is the lowest average, to begin with.
 
 
 
+   note :  smallest average is least sum divided by most index
 
-   tricky
+
+   now need to examine the next least sum smaller than the current sum, which might be -20
+
+   Ok, now you have -2.5 and   -20. if the average of -20 from 2.5  + 2.5 is smaller, keep going, else, you have the smallest sub array?
+
 
   *)
 
