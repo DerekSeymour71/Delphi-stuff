@@ -1,4 +1,4 @@
-﻿unit prefixarray;
+unit prefixarray;
 
 interface
 
@@ -353,7 +353,7 @@ end;
 
             check -100 to end less than -100?
 
-            proceed if true
+            proceed if true   (that's only 1 check)
 
 
 
