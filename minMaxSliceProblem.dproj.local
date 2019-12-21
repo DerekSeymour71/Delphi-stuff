@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-  <Transactions>
-    <Transaction>2019/12/17 07:13:14.536,=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Unit7.pas</Transaction>
-    <Transaction>2019/12/17 07:16:07.356,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\prefixarray.fmx=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Unit7.fmx</Transaction>
-    <Transaction>2019/12/17 07:16:07.356,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\prefixarray.pas=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Unit7.pas</Transaction>
-    <Transaction>2019/12/17 11:41:14.668,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Project6.dproj=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Project6.dproj</Transaction>
-    <Transaction>2019/12/17 11:59:06.425,C:\codility\Delphi\Delphi-stuff\prefixarray.fmx=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\prefixarray.fmx</Transaction>
-    <Transaction>2019/12/17 11:59:06.425,C:\codility\Delphi\Delphi-stuff\prefixarray.pas=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\prefixarray.pas</Transaction>
-    <Transaction>2019/12/17 11:59:36.002,C:\codility\Delphi\Delphi-stuff\minMaxSliceProblem.dproj=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Project6.dproj</Transaction>
+	<Transactions>
+    <Transaction>2019/12/17 07:13:14.000.536,=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Unit7.pas</Transaction>
+    <Transaction>2019/12/17 07:16:07.000.356,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Unit7.pas=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\prefixarray.pas</Transaction>
+    <Transaction>2019/12/17 07:16:07.000.356,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Unit7.fmx=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\prefixarray.fmx</Transaction>
+    <Transaction>2019/12/17 11:41:14.000.668,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Project6.dproj=C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Project6.dproj</Transaction>
+    <Transaction>2019/12/17 11:59:06.000.425,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\prefixarray.pas=C:\codility\Delphi\Delphi-stuff\prefixarray.pas</Transaction>
+    <Transaction>2019/12/17 11:59:06.000.425,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\prefixarray.fmx=C:\codility\Delphi\Delphi-stuff\prefixarray.fmx</Transaction>
+    <Transaction>2019/12/17 11:59:36.000.002,C:\Users\409Mo\Documents\Embarcadero\Studio\Projects\Project6.dproj=C:\codility\Delphi\Delphi-stuff\minMaxSliceProblem.dproj</Transaction>
   </Transactions>
 </BorlandProject>

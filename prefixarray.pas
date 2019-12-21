@@ -48,7 +48,7 @@ type
   protected
     function count : integer;
     function Sum(const i, j : integer) : integer;
-
+    function MinSlice() : integer;
     procedure MakePrefixArray;
     function Average(const i,j : integer) : Double;
     function getItem(const i : integer) : integer;
@@ -80,11 +80,50 @@ begin
 end;
 
 
+function TPrefixSum.MinSlice : integer;
+var
+   minSlice : double;
+   CurrentMinSlice : double;
+   Minindex : integer;
+   i : integer;
+   N : integer;
+   SumA : integer;
+   AverageA : Double;
+   SumB : integer;
+   AverageB : double;
 
-                  //  0  1   2   3   4   5   6  7  8  9
-   //input numbers	  0  1	 2	 3	 4	 5	 6	7  8  9
-   //prefix sums	 0  0  1	 3	 6	10	15	21	28 36
+   function min(i,j : double) : double;
+   begin
+     if i < j then result := i
+     else result := j;
+   end;
 
+begin
+   N := count;
+   minSlice := (fArray[0] + fArray[1]) / 2.0;
+   Minindex := 0;
+
+    for i:= 0 to N-2 do
+    begin
+      SumA := fArray[i] + fArray[i + 1];
+      SumB := fArray[i] + fArray[i + 1] + fArray[i + 2];
+      AverageA := SumA / 2;
+      AverageB := SumB / 3;
+      CurrentMinSlice := min(AverageA,AverageB);
+      if (CurrentMinSlice < minSlice)then
+      begin
+        minSlice := CurrentMinSlice;
+        Minindex := i;
+      end;
+    End;
+
+    if (((fArray[N - 2] + fArray[N - 1]) / 2.0) < minSlice) then
+    begin
+        Minindex := N - 2;
+    end;
+
+    result := Minindex;
+end;
 
 
 
@@ -151,56 +190,6 @@ end;
 
 
 
-   (*
-
- A[P] + A[P + 1] + ... + A[Q] divided by the length of the slice.
- To be precise, the average equals (A[P] + A[P + 1] + ... + A[Q]) / (Q − P + 1).
-
-p = 1
-q = 5
-
-1+2+3+4+5 / (5-1 + 1)
-
-
-
-
-i   0  1  2  3   4   5
-    1  2  3  4   5   6   -- prefix of entire array.
-
-
-0  1  2  3  4   5   6
-0  1  3  6 10  15  21      21-3 = 18
-
-
-i = 2
-j = 5
-sum = A[j+1] - A[(i+1)-1]   // 15 - 1 = 14
-
-1-  5      (15  / 5
-1 - 4      (10) / 4
-1 - 3      6/3  /3
-1 - 2      3/2 / 2
-
-
-2-4       (10-1) /  (4-2 + 1)
-2-5       (15-1) /  (5-2 + 1)
-
-
-
-
-
-I don't have to keep adding it up
-
-2+3+4       3 index for loop compared to 2 index
-2+3+4+5     4 index for loop compared to 2 index   
-
-
-I'm no longer doing a brute force o(n) on any slice if I do this right, at most it will be two indexs for any size of slice*)
-
-
-
-
-
 procedure TForm7.loop;
   var
     i : integer;
@@ -253,111 +242,6 @@ begin
   loop;
 end;
 
-
-(* note - I'm not interested in a brute force algorithm here
-
-(* [1,2,3,4,5,6,7,8]  you have to scan the entire row as -values alter it.
-
-
-   [-3, -5, -8, -4, -10]
-
-  [-3, -5, -8, -4, -10] = -30/5  = -6
-  [-3, -5, -8, -4         -20/4  = -5
-  [-3, -5, -8, 			 =    -16/3  -5.33
-  [-3, -5,           = -4
-
-  this should return 2
-
-  0 1 2 3 4
-  3 5 8 4 10
-
-  3 8 16 20 30
-
-
-   1,2
-   1,-10
-  -10,1
-  -10,-10
-
-
-   [2,3, -10,10,-20,-200][200,200,-500]
-
-
-
-   new average = old average + (new value - old average) / new size
-
-                 2.5  + (-10 - 2.5) /3
-
-
-
-   //returns a new average of 2 slices + one new value;
-   function NewAverage(const OldAverage : double; const NewValue : double) : double;
-   begin
-     result := OldAverage + (NewValue - OldAverage) /3 ;
-   end;
-
-
-   12,12,34,45,-1000,12,-100
-
-
-   subProblem = if you have negatives, you need to treat them differenly
-
-
-    average of every 2 pair
-
-
-    0    1      2     3     4    5      6      7       8
-    5    10     10    5     5    -10   - 10    - 5    -5
-
-    7.5  10    7.5    2.5  -2.5  -10  -7.5  -2.5
-
-
-    if we say, start at -2.5, as it is the lowest average, to begin with.
-
-
-
-   note :  smallest average is least sum divided by most index
-
-
-   now need to examine the next least sum smaller than the current sum, which might be -20
-
-   Ok, now you have -2.5 and   -20.
-   if the average of -20 from 2.5  + 2.5 is smaller than 2.5,
-   keep going, else, you have the smallest sub array?
-
-   so, let's say you pick -10, the next negative is -20, but there is 100 indexes....
-   you still choose -20, and exit
-
-
-   at what point does an average become bigger than a previous average?
-
-
-   -100 of 2 at index 4             -110 of 2 at 6
-
-
-   alright another idea
-
-   a mask
-
-   if all + numbers, pick the smallest 2 average, exit.
-
-   if mixture
-
-   stick the positive into one array
-   stick the negative into another array, do some kind of masking on it
-
-   10 2 5 7 -100  3 70
-
-   10 2 5 7 [    ]  3 70
-            [-100]
-
-            check -100 to end less than -100?
-
-            proceed if true
-
-
-
-
-  *)
-
 end.
+
+
