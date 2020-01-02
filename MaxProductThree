@@ -1,0 +1,201 @@
+unit prefixarray;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
+  FMX.ListBox, FMX.Controls.Presentation, FMX.StdCtrls, system.math, FMX.Edit,
+  FMX.EditBox, FMX.SpinBox;
+
+
+const
+  min = 0;
+  max = 9;
+
+type
+
+
+
+  TIntegerArray = array of integer;
+
+  TForm7 = class(TForm)
+    ListBox1: TListBox;
+    Button1: TButton;
+    SpinBox1: TSpinBox;
+    SpinBox2: TSpinBox;
+    SpinBox3: TSpinBox;
+    SpinBox4: TSpinBox;
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+
+  end;
+
+var
+  Form7: TForm7;
+
+
+
+
+
+implementation
+
+
+
+
+
+
+
+
+{$R *.fmx}
+
+
+
+                                //P>Q>R
+
+
+                               // two smallest negative numbers + biggest positive
+                               // / /
+                               // or three biggest positive numbers
+
+
+(*   five types of possible types of triplets, 3 possible positive + triplets
+
+    positive triplets
+    1   [ 1,   1,   1]     +   (A & B  +)    C +
+    2   [-1,  -1,   1]     +   (A & B  -)    C +
+    3   [-1,   1,  -1]     +   (A or B -)    C -
+
+
+    negative triplets
+    4   [ 1,   1,  -1]     -
+    5   [-1,  -1,  -1]     -
+
+
+
+     [-5  5  -5]  -- adding a 4 make it smaller or bigger?
+
+
+     if (A+) then
+     begin
+       need another + , and another +
+     end
+     if (A-)   then
+     begin
+
+
+     end
+
+
+
+*)
+
+procedure TForm7.Button1Click(Sender: TObject);
+const
+  A : array[0..6] of integer =    //(0, 0, 0, 0, 0, 1, 0);
+                                 // (-5, 5, -5, 4);
+                                  (-5,-10,3,2,1,10,-7);  //=100
+
+
+                                //  5,4,3,2,1,-5,-5
+
+                                //  5,4,3  = 60
+
+
+var
+  X,Y,Z : integer;
+  i : integer;
+  positive_product,
+  negative_product : integer;
+  size : integer;
+  max : integer;
+  MaxNegativeA,
+  MaxNegativeB : integer;
+  result : integer;               // -10     -6,-4
+begin
+  ListBox1.items.clear;
+  X:= -4000;
+  Y:= -4000;
+  Z:= -4000;
+  Max := -4000;
+  MaxNegativeA := 0;
+  MaxNegativeB := 0;
+  negative_product := 0;
+
+  size := length(A);
+
+  for i := 0 to size-1 do
+  begin
+      if(A[i] < 0) then //put it into the negative buckets
+      begin
+        if (A[i]<MaxNegativeA) or (A[i] < MaxNegativeB)  then
+        begin
+          if (A[i] < MaxNegativeA) and (MaxNegativeA > MaxNegativeB) then
+            MaxNegativeA:= A[i]
+          else
+           MaxNegativeB := A[i];
+        end;
+      end
+      else
+      begin   //put it into positive buckets
+        if (A[i] > X) And (X<Y) And (X<Z) then
+        begin
+          X := A[i];
+        end
+        else
+        if (A[i] > Y) And (Y<Z) then
+        begin
+          Y := A[i];
+        end
+        else
+        if (A[i] > Z) then
+        begin
+          Z := A[i];
+
+        end;
+      end;
+
+      if (A[i] > max) then max := A[i]; //keep a running total of the current max -- for later use with - numbers
+
+
+  end;
+
+   positive_product := X * Y * Z;
+
+     if (MaxNegativeA < 0) and (MaxNegativeB < 0) then
+     begin
+       negative_product := Max * MaxNegativeA * MaxNegativeB;
+     end;
+
+     if negative_product > positive_product  then
+       result := negative_product
+     else
+       result := positive_product;
+
+
+  //1st idx number divisible by
+  ListBox1.items.add(X.ToString);
+  ListBox1.items.add(Y.ToString);
+  ListBox1.items.add(Z.ToString);
+  ListBox1.items.add((X*Y*Z).ToString);
+  Listbox1.items.add(max.ToString);
+  Listbox1.items.add(maxNegativeA.ToString);
+  Listbox1.items.add(maxNegativeB.ToString);
+  Listbox1.items.add(positive_product.ToString);
+  Listbox1.items.add(negative_product.ToString);
+
+
+
+
+
+end;
+
+
+
+end.
+
+
+
