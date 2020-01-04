@@ -1,99 +1,57 @@
-unit prefixarray;
-
-interface
-
-uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
-  FMX.ListBox, FMX.Controls.Presentation, FMX.StdCtrls, system.math, FMX.Edit,
-  FMX.EditBox, FMX.SpinBox;
+* you can write to stdout for debugging purposes, e.g. *)
+(* WriteLn('this is a debug message');                  *)
 
 
 
-type
-
-
-
-  TIntegerArray = array of integer;
-
-  TForm7 = class(TForm)
-    ListBox1: TListBox;
-    Button1: TButton;
-    SpinBox1: TSpinBox;
-    SpinBox2: TSpinBox;
-    SpinBox3: TSpinBox;
-    SpinBox4: TSpinBox;
-    procedure Button1Click(Sender: TObject);
-  private
-    { Private declarations }
-  public
-    { Public declarations }
-
-  end;
-
-var
-  Form7: TForm7;
-
-
-
-
-
-implementation
-
-
-{$R *.fmx}
-
-
-
-procedure TForm7.Button1Click(Sender: TObject);
-const
-  A : array[0..5] of integer = (0, 0, 0, 0, 0,0);           // 0    //all zero
-  B : array[0..5] of integer = (-5, 5, -5, 4,3,4);          // 125   //mix of negative and positive
-  C : array[0..5] of integer = (-5, -5, -5, -5,-5,-5);      // -125  //all negative
-  D : array[0..2] of integer = (-5, -5, -5);                // -125  //negative triplet
-  E : array[0..2] of integer = (-5, -5, 5);                 // 125   //1 positive, and 2 negatives
-  F : array[0..2] of integer = (-5, 5, 5);                  // -125  //2 positives 1 negative
-  G : array[0..3] of integer = (-5, 5, 5, 5);               // 125   //1 negative, 3 positve
-  H : array[0..3] of integer = (5,4,-3,-2);                 // 30   //mix
-  I : array[0..2] of integer = (-10, -2, -4);               // -80   //small triplet
-  J : array[0..3] of integer = (-5, -5, 5,5);               // 125   //two negative, two positives
-  K : array[0..9] of integer = (-5, -5,-4,10,-2,-3,-5,-6,-11,-12);               // 1320   //1 positive, rest negative
-  L : array[0..9] of integer = (2, 4,4,10,2,3,5,6,11,12);               // 1320   //all positive
-  M : array[0..4] of integer = (-5, -6, -4, -7, -10);              //-120
-
-
-
-
-  function Max(A,B : integer) : integer;
+  function Max(A,B : longint) : longint;
   begin
-    result := A;
-    if B > result then
-       result := B;
+    Max := A;
+    if B > Max then
+       Max := B;
   end;
 
-  function Min(A,B : integer) : integer;
+  function Min(A,B : longint) : longint;
   begin
-    result := A;
-    if B < result then result := B;
+    Min := A;
+    if B < Min then Min := B;
   end;
 
 
-  function MinThree(X,Y,Z : integer) : integer;
+  function MinThree(X,Y,Z : longint) : longint;
   begin
-    result := min(min(X,Y),Z);
+    MinThree := min(min(X,Y),Z);
   end;
 
-
-  function MaxThree(X,Y,Z : integer) : integer;
+  function MaxThree(X,Y,Z : longint) : longint;
   begin
-    result := Max(max(X,Y),Z);
+    MaxThree := Max(max(X,Y),Z);
   end;
+
+
+
+
+  function MiddleThree(X,Y,Z : longint) : longint;
+  var
+     min, max : longint;
+  begin
+     min := MinThree(X,Y,Z);
+     max := MaxThree(X,Y,Z);
+
+     if (X <> min) and (X<>max) then MiddleThree := X
+     else
+     if (Y <> min) and (Y<>max) then MiddleThree := Y
+     else
+     if (Z <> min) and (Z<>max) then MiddleThree := Z;
+
+
+  end;
+
 
                   //-5,-7,-11
   //set biggest element to a smaller element
-  procedure SetMinThree(var X,Y,Z : integer; Value : integer);
+  procedure SetMinThree(var X,Y,Z : longint; Value : longint);
   var
-    Max : integer;
+    Max : longint;
   begin
     Max := MaxThree(X,Y,Z);
     if   (X = Max) then
@@ -111,9 +69,9 @@ const
   end;
 
 
-  procedure SetMaxThree(var X,Y,Z : integer; Value : integer);
+  procedure SetMaxThree(var X,Y,Z : longint; Value : longint);
   var
-    Min : integer;
+    Min : longint;
   begin
     Min := MinThree(X,Y,Z);
     if   (X = min) then
@@ -130,17 +88,17 @@ const
     end;
   end;
 
-
-  function MaxProduct(Const A :  array of integer) : integer;
-  var
-    X,Y,Z : integer; //max three
-    P,Q,R : integer; //min three;
-    MinMaxA : integer;
-    MinMaxB : integer;
-    i : integer;
-    size : integer;
-    SumA,SumB : integer;
-  begin
+function solution(A: array of longint; N: longint): longint;
+ var
+    X,Y,Z : longint ; //max three
+    P,Q,R : longint; //min three;
+    MinMaxA : longint;
+    MinMaxB : longint;
+    i : longint;
+    size : longint;
+    SumA,SumB : longint;
+begin
+    (* write your code in Free Pascal 3.0 *)
     X := A[0];
     Y := A[1];
     Z := A[2];
@@ -148,54 +106,18 @@ const
     Q := Y;
     R := Z;
     Size := length(A);
-    MinMaxA := Min(P,Q);
-    MinMaxB := Min(Q,R);
+    MinMaxA := Min(P,min(Q,R));              
+    MinMaxB := middleThree(P,Q,R);
     for i := 3 to size-1 do
     begin
       setMaxThree(X,Y,Z,A[I]);
       setMinThree(P,Q,R,A[i]);
       //max of min three
-      MinMaxA := min(P,Q);
-      MinMaxB := min(Q,R);
+      MinMaxA := Min(P,min(Q,R));
+      MinMaxB := middleThree(P,Q,R);
     end;
 
     SumA := X*Y*Z;
     SumB := maxThree(X,Y,Z) * MinMaxA * MinMaxB;
-    result := Max(SumA,SumB);
-
-  end;
-
-
-
-var
-  x,y,z, value : integer;
-
-
-
-begin
-  ListBox1.items.clear;
-  Listbox1.items.add(MaxProduct(A).ToString);
-  Listbox1.items.add(MaxProduct(B).ToString);
-  Listbox1.items.add(MaxProduct(C).ToString);
-  Listbox1.items.add(MaxProduct(D).ToString);
-  Listbox1.items.add(MaxProduct(E).ToString);
-  Listbox1.items.add(MaxProduct(F).ToString);
-  Listbox1.items.add(MaxProduct(G).ToString);
-  Listbox1.items.add(MaxProduct(H).ToString);
-  Listbox1.items.add(MaxProduct(I).ToString);
-  Listbox1.items.add(MaxProduct(J).ToString);
-  Listbox1.items.add(MaxProduct(K).ToString);
-  Listbox1.items.add(MaxProduct(L).ToString);
-  Listbox1.items.add(MaxProduct(M).ToString);
-
-
-
-
+    solution := Max(SumA,SumB); 
 end;
-
-
-
-end.
-
-
-
