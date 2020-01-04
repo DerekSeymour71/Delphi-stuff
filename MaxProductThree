@@ -9,9 +9,6 @@ uses
   FMX.EditBox, FMX.SpinBox;
 
 
-const
-  min = 0;
-  max = 9;
 
 type
 
@@ -44,149 +41,152 @@ var
 implementation
 
 
-
-
-
-
-
-
 {$R *.fmx}
 
 
 
-                                //P>Q>R
-
-
-                               // two smallest negative numbers + biggest positive
-                               // / /
-                               // or three biggest positive numbers
-
-
-(*   five types of possible types of triplets, 3 possible positive + triplets
-
-    positive triplets
-    1   [ 1,   1,   1]     +   (A & B  +)    C +
-    2   [-1,  -1,   1]     +   (A & B  -)    C +
-    3   [-1,   1,  -1]     +   (A or B -)    C -
-
-
-    negative triplets
-    4   [ 1,   1,  -1]     -
-    5   [-1,  -1,  -1]     -
-
-
-
-     [-5  5  -5]  -- adding a 4 make it smaller or bigger?
-
-
-     if (A+) then
-     begin
-       need another + , and another +
-     end
-     if (A-)   then
-     begin
-
-
-     end
-
-
-
-*)
-
 procedure TForm7.Button1Click(Sender: TObject);
 const
-  A : array[0..6] of integer =    //(0, 0, 0, 0, 0, 1, 0);
-                                 // (-5, 5, -5, 4);
-                                  (-5,-10,3,2,1,10,-7);  //=100
+  A : array[0..5] of integer = (0, 0, 0, 0, 0,0);           // 0    //all zero
+  B : array[0..5] of integer = (-5, 5, -5, 4,3,4);          // 125   //mix of negative and positive
+  C : array[0..5] of integer = (-5, -5, -5, -5,-5,-5);      // -125  //all negative
+  D : array[0..2] of integer = (-5, -5, -5);                // -125  //negative triplet
+  E : array[0..2] of integer = (-5, -5, 5);                 // 125   //1 positive, and 2 negatives
+  F : array[0..2] of integer = (-5, 5, 5);                  // -125  //2 positives 1 negative
+  G : array[0..3] of integer = (-5, 5, 5, 5);               // 125   //1 negative, 3 positve
+  H : array[0..3] of integer = (5,4,-3,-2);                 // 30   //mix
+  I : array[0..2] of integer = (-10, -2, -4);               // -80   //small triplet
+  J : array[0..3] of integer = (-5, -5, 5,5);               // 125   //two negative, two positives
+  K : array[0..9] of integer = (-5, -5,-4,10,-2,-3,-5,-6,-11,-12);               // 1320   //1 positive, rest negative
+  L : array[0..9] of integer = (2, 4,4,10,2,3,5,6,11,12);               // 1320   //all positive
+  M : array[0..4] of integer = (-5, -6, -4, -7, -10);              //-120
 
 
-                                //  5,4,3,2,1,-5,-5
-
-                                //  5,4,3  = 60
 
 
-var
-  X,Y,Z : integer;
-  i : integer;
-  positive_product,
-  negative_product : integer;
-  size : integer;
-  max : integer;
-  MaxNegativeA,
-  MaxNegativeB : integer;
-  result : integer;               // -10     -6,-4
-begin
-  ListBox1.items.clear;
-  X:= -4000;
-  Y:= -4000;
-  Z:= -4000;
-  Max := -4000;
-  MaxNegativeA := 0;
-  MaxNegativeB := 0;
-  negative_product := 0;
-
-  size := length(A);
-
-  for i := 0 to size-1 do
+  function Max(A,B : integer) : integer;
   begin
-      if(A[i] < 0) then //put it into the negative buckets
-      begin
-        if (A[i]<MaxNegativeA) or (A[i] < MaxNegativeB)  then
-        begin
-          if (A[i] < MaxNegativeA) and (MaxNegativeA > MaxNegativeB) then
-            MaxNegativeA:= A[i]
-          else
-           MaxNegativeB := A[i];
-        end;
-      end
-      else
-      begin   //put it into positive buckets
-        if (A[i] > X) And (X<Y) And (X<Z) then
-        begin
-          X := A[i];
-        end
-        else
-        if (A[i] > Y) And (Y<Z) then
-        begin
-          Y := A[i];
-        end
-        else
-        if (A[i] > Z) then
-        begin
-          Z := A[i];
+    result := A;
+    if B > result then
+       result := B;
+  end;
 
-        end;
-      end;
+  function Min(A,B : integer) : integer;
+  begin
+    result := A;
+    if B < result then result := B;
+  end;
 
-      if (A[i] > max) then max := A[i]; //keep a running total of the current max -- for later use with - numbers
 
+  function MinThree(X,Y,Z : integer) : integer;
+  begin
+    result := min(min(X,Y),Z);
+  end;
+
+
+  function MaxThree(X,Y,Z : integer) : integer;
+  begin
+    result := Max(max(X,Y),Z);
+  end;
+
+                  //-5,-7,-11
+  //set biggest element to a smaller element
+  procedure SetMinThree(var X,Y,Z : integer; Value : integer);
+  var
+    Max : integer;
+  begin
+    Max := MaxThree(X,Y,Z);
+    if   (X = Max) then
+    begin
+      if (value < X) then X:= Value;
+    end
+    else if (Y=Max)then
+    begin
+      if (value < Y) then Y:= Value;
+    end
+    else if (Z=max)then
+    begin
+     if (value < Z) then Z:= Value;
+    end;
+  end;
+
+
+  procedure SetMaxThree(var X,Y,Z : integer; Value : integer);
+  var
+    Min : integer;
+  begin
+    Min := MinThree(X,Y,Z);
+    if   (X = min) then
+    begin
+      if (value > X) then X:= Value;
+    end
+    else if (Y=Min)then
+    begin
+      if (value > Y) then Y:= Value;
+    end
+    else if (Z=Min)then
+    begin
+     if (value > Z) then Z:= Value;
+    end;
+  end;
+
+
+  function MaxProduct(Const A :  array of integer) : integer;
+  var
+    X,Y,Z : integer; //max three
+    P,Q,R : integer; //min three;
+    MinMaxA : integer;
+    MinMaxB : integer;
+    i : integer;
+    size : integer;
+    SumA,SumB : integer;
+  begin
+    X := A[0];
+    Y := A[1];
+    Z := A[2];
+    P := X;
+    Q := Y;
+    R := Z;
+    Size := length(A);
+    MinMaxA := Min(P,Q);
+    MinMaxB := Min(Q,R);
+    for i := 3 to size-1 do
+    begin
+      setMaxThree(X,Y,Z,A[I]);
+      setMinThree(P,Q,R,A[i]);
+      //max of min three
+      MinMaxA := min(P,Q);
+      MinMaxB := min(Q,R);
+    end;
+
+    SumA := X*Y*Z;
+    SumB := maxThree(X,Y,Z) * MinMaxA * MinMaxB;
+    result := Max(SumA,SumB);
 
   end;
 
-   positive_product := X * Y * Z;
-
-     if (MaxNegativeA < 0) and (MaxNegativeB < 0) then
-     begin
-       negative_product := Max * MaxNegativeA * MaxNegativeB;
-     end;
-
-     if negative_product > positive_product  then
-       result := negative_product
-     else
-       result := positive_product;
 
 
-  //1st idx number divisible by
-  ListBox1.items.add(X.ToString);
-  ListBox1.items.add(Y.ToString);
-  ListBox1.items.add(Z.ToString);
-  ListBox1.items.add((X*Y*Z).ToString);
-  Listbox1.items.add(max.ToString);
-  Listbox1.items.add(maxNegativeA.ToString);
-  Listbox1.items.add(maxNegativeB.ToString);
-  Listbox1.items.add(positive_product.ToString);
-  Listbox1.items.add(negative_product.ToString);
+var
+  x,y,z, value : integer;
 
+
+
+begin
+  ListBox1.items.clear;
+  Listbox1.items.add(MaxProduct(A).ToString);
+  Listbox1.items.add(MaxProduct(B).ToString);
+  Listbox1.items.add(MaxProduct(C).ToString);
+  Listbox1.items.add(MaxProduct(D).ToString);
+  Listbox1.items.add(MaxProduct(E).ToString);
+  Listbox1.items.add(MaxProduct(F).ToString);
+  Listbox1.items.add(MaxProduct(G).ToString);
+  Listbox1.items.add(MaxProduct(H).ToString);
+  Listbox1.items.add(MaxProduct(I).ToString);
+  Listbox1.items.add(MaxProduct(J).ToString);
+  Listbox1.items.add(MaxProduct(K).ToString);
+  Listbox1.items.add(MaxProduct(L).ToString);
+  Listbox1.items.add(MaxProduct(M).ToString);
 
 
 
