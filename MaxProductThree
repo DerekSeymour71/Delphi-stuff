@@ -31,18 +31,8 @@
 
 
   function MiddleThree(X,Y,Z : longint) : longint;
-  var
-     min, max : longint;
   begin
-     min := MinThree(X,Y,Z);
-     max := MaxThree(X,Y,Z);
-
-     if (X <> min) and (X<>max) then MiddleThree := X
-     else
-     if (Y <> min) and (Y<>max) then MiddleThree := Y
-     else
-     if (Z <> min) and (Z<>max) then MiddleThree := Z;
-
+     MiddleThree := max(min(X,Y), min(max(X,Y),Z));
 
   end;
 
