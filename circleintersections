@@ -1,0 +1,159 @@
+//the guts of my solution to codility circle intersections.
+//i've included a quick sort algorithm as well,
+//100% correct, I believe, I haven't run it through yet, but works so far on all my test data.
+//I have another solution, which almost works without sorting it. But I have one issue to resolve - remove duplicates.
+//which basically does a forward and backward pass of the data.
+
+function partition(var Arr : circles;  left,right : integer) : integer;
+var
+   pivot,tmp : longint;
+begin
+   pivot := arr[(left + right) div 2];
+
+        while (left <= right) do
+        begin
+            while (arr[left] < pivot) do
+            begin
+               inc(left);
+            end;
+
+            while (arr[right] > pivot) do
+            begin
+                dec(right);
+            end;
+
+            if (left <= right) then
+            begin
+              tmp := arr[left];
+
+             // inc(left);
+              arr[left] := arr[right];  //arr[left++] := arr[right];
+             // dec(right);
+              arr[right] := tmp;  //arr[right--] := tmp;
+
+              inc(left);
+              dec(right);
+            end;
+       end;
+
+   result := left;
+end;
+
+
+procedure quicksort(var Arr : circles; left,right :integer);
+var
+  index : integer;
+begin
+    index := partition(arr, left, right);
+    if (left < index - 1) then
+    begin
+        quicksort(arr, left, index - 1);
+    end;
+
+    if (index < right) then
+    begin
+        quicksort(arr, index, right);
+    end;
+end;
+
+ 
+ 
+procedure TForm8.Button1Click(Sender: TObject);
+const A : Array[0..n-1] of integer = (1,5,2,1,4,0);
+//const A : Array[0..n-1] of integer = (1,1,1,3,4,5);
+//const A : Array[0..n-1] of integer = (1,1,1,1,1,1);  //9           sum 6
+//const A : Array[0..n-1] of integer = (2,2,2,2,2,2);   //14       sum 12
+//const A : Array[0..n-1] of integer =  (3,3,3,3,3,3);   //15
+//const A : Array[0..n-1] of integer =  (4,4,4,4,4,4);   //15
+//const A : Array[0..n-1] of integer =  (5,5,5,5,5,5);   //15
+//const A : Array[0..n-1] of integer =  (50,50,50,50,50,50);   //15
+
+   // (-4,    -1,    0,    0,   2,      5)
+  //  (1,     4,     4,    5,   6,      8)
+
+
+
+
+var
+  left,right : integer;
+  leftEdges : Circles;
+  RightEdges : Circles;
+  counter : integer;
+  previousCircles: integer;
+  leftP : integer;
+  rightP : integer;
+  result :  integer;
+  r : integer;
+  i : integer;
+
+begin
+   for i := 0 to N-1 do
+   begin
+     r := A[i];
+     left := i - r;
+     leftEdges[i] := left;
+
+     right := i + r;
+     rightEdges[i] := right;
+   end;
+
+
+
+  quicksort(leftEdges, 0, N-1);
+  quicksort(rightEdges, 0, N-1);
+
+   counter := 0;
+   previousCircles := 0;
+   leftP := 0;
+
+    for rightP := 0 to N-1 do
+    begin
+        while ((leftP < N) and (leftEdges[leftP] <= rightEdges[rightP])) do
+        begin
+           inc(LeftP);
+
+           inc(previousCircles);
+        end ;
+
+
+
+         dec(PreviousCircles);
+         inc(counter,PreviousCircles);
+
+        if (counter > 10000000) then //this should be N
+        begin
+            result := -1;
+        end;
+
+    end;
+   result := counter;
+
+   ListBox1.items.add(Result.ToString);
+end;
+
+
+
+//here's my workings 
+
+
+                      L      R
+A  A[0] = 1         -1,     1       Yellow
+B  A[1] = 5         -4,     6       black
+C  A[2] = 2          0,     4       green
+D  A[3] = 1          2,     4       blue
+E  A[4] = 4          0,     8       red
+F  A[5] = 0          5,     5       pink
+
+
+radius sorted L,R
+     L                     R
+0   -4    black            1    yellow
+1   -1    yellow           4    green
+2    0    green            4    blue
+3    0    red              5    pink
+4    2    blue             6    black
+5    5    pink             8    red
+
+
+visual representation of problems...
+https://ibb.co/5kyPkfz
