@@ -26,10 +26,8 @@ begin
             begin
               tmp := arr[left];
 
-             // inc(left);
-              arr[left] := arr[right];  //arr[left++] := arr[right];
-             // dec(right);
-              arr[right] := tmp;  //arr[right--] := tmp;
+              arr[left] := arr[right];    
+              arr[right] := tmp;   
 
               inc(left);
               dec(right);
