@@ -2,7 +2,11 @@
 //i've included a quick sort algorithm as well,
 //100% correct, I believe, I haven't run it through yet, but works so far on all my test data.
 //I have another solution, which almost works without sorting it. But I have one issue to resolve - remove duplicates.
-//which basically does a forward and backward pass of the data.
+//which basically does a forward and backward pass of the data. I'm still struggling with O(N) big notation a bit, 
+//but I assume if you don't sort something it is more performant, generally. With backward and forward passes,  considering
+//radius, some items are not considered. i.e. on (1,5,2,1,4,0), the last element needs to be considered against 5 but won't be on a backward
+//pass, however, on a forward pass you get duplicates which need removing (and or skipping). Initially, I thought, just have a bitshifting
+//algorithm. i.e. as you add an element you get a sum, and can bit-shift an element to check if it is in the sum...this doesn't work
 
 function partition(var Arr : circles;  left,right : integer) : integer;
 var
