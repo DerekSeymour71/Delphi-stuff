@@ -2,6 +2,11 @@
 //i've included a quick sort algorithm as well,
 //100% correct, I believe.
 
+visual representation of initial problem
+https://ibb.co/5kyPkfz
+
+visual of circle intersections, of left edges
+https://ibb.co/68x7KTy
 
 //here is why it works....it's not intuitive but this hopefully explains it better
 
@@ -190,5 +195,4 @@ radius sorted L,R
 5    5    pink             8    red
 
 
-visual representation of problems...
-https://ibb.co/5kyPkfz
+ 
