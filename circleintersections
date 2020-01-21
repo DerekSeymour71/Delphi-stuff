@@ -195,4 +195,50 @@ radius sorted L,R
 5    5    pink             8    red
 
 
- 
+ Brute force solution : 68% correct, fails on an overflow(i.e. addition of huge numbers) and speed...i.e. runs to slow on big data.
+ * you can write to stdout for debugging purposes, e.g. *)
+(* WriteLn('this is a debug message');                  *)
+
+function solution(A: array of longint; N: longint): longint; 
+    (* write your code in Free Pascal 3.0 *)
+var
+  i,j : longint;
+  LeftA,rightA,
+  LeftB,rightB : longint;
+  result : Longint;
+
+
+begin
+  result := 0;
+
+  //count forward
+  //0 1 2 3 4 5
+  //1 2 4 2 5 6
+  For i := 0 to N-1 do
+  begin
+    leftA  :=  i - A[i];
+    rightA :=  i + A[i];
+
+    for J := i+1 to N-1 do
+    begin
+      leftB  :=  j - A[j];
+      rightB :=  J + A[j];
+     // AddLetters(i,j);
+
+      if ((LeftB >= LeftA) and (LeftB <= rightA)) or
+         ((RightA >=LeftB) and (rightA<= rightB)) then
+      begin
+        inc(result);
+      end;
+
+
+    end;
+
+
+  end;
+
+  solution := result;
+
+end;
+
+
