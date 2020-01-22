@@ -261,7 +261,8 @@ an idea. for example if you had 0-5
 
 well, first of all, you deduct 1, as 0 it part of the query, then you count them i.e 7 for 0--5
 
-I'm not sure of the validity of this idea.
+if that worked, first, you're not looking at every single index for any given i node. So it's faster than log(n**) whatever.
+I'm not sure of the validity of this idea. I'll have to think on it.
 
 
 
