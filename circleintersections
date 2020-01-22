@@ -241,4 +241,28 @@ begin
 
 end;
 
+Here's another idea which may work...you build a tree of the left indexes, and as you go totalling the collisions of left. Then you take a each circle
+and place it on top of the previous left indexes. Maybe, I'll draw a a diagram, but kind of like what can this circle "see" from its radius?
+
+
+You'd have something like this for left indexes
+[0]
+ |
+[0]----[1]----[2]---[3]---[4]
+        |      |
+       [1]    [2]   
+
+
+immediately, you notice that at 0 there is 2 collisions. at 1 and 2, 2 collisions.
+
+then you super-impose the right indexes on top of the tree. 
+
+an idea. for example if you had 0-5
+
+well, first of all, you deduct 1, as 0 it part of the query, then you count them i.e 7 for 0--5
+
+I'm not sure of the validity of this idea.
+
+
+
 
