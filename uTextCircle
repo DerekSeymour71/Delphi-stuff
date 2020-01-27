@@ -83,6 +83,7 @@ begin
   TextSettings.font.Family :=  'Berlin Sans FB';
   TextSettings.font.size := 30;
   TextSettings.FontColor := TalphaColorRec.Chartreuse;
+  setinterval(250); //1/4 sec
 end;
 
  Procedure TTypeWriter.SetWidth(Const Text : String); //I really don't know how to work this out, based on the font...
@@ -116,6 +117,7 @@ end;
 Procedure TTypeWriter.Start;
 begin
    fTimer := TTimer.create(self); //loop of when to write letter
+   fTimer.Interval := getInterval;
    fTimer.OnTimer := OnTimer; //event of timer
 end;
 
@@ -202,16 +204,13 @@ end;
 end.
 
 
-how to use typer
+//usage
 procedure TForm8.Button2Click(Sender: TObject);
 var
   typer : ITypeWriter;
 begin
   typer := TTypeWriter.create(self);
-  typer.interval := 1000;  //prints a letter every second
   typer.Text := 'Here''s some text to type';
-  AddObject(Typer as TTypewriter); //add the object to the view
-  Typer.Start;  
+  AddObject(Typer as TTypewriter);
+  Typer.Start;
 end;
-
-I might wrap this in a simple builder at some stage.
