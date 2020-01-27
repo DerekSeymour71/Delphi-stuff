@@ -4,6 +4,7 @@ interface
 
 uses
    classes,
+   sysutils,
    types,
    FMX.Types,
    Fmx.Objects,
@@ -33,57 +34,104 @@ type
 
    //display text like a type-writer
    ITypeWriter = interface
-     Procedure TypeText;
-     Procedure SetLoop(Const Count : integer);
-     Function getLoop : Integer;
-     Function getSpeed  : Integer;
-     Procedure setSpeed(Const ms : Integer);
+     Procedure Start;
+     Procedure Stop;
+     Procedure WriteText;
+     Procedure SetInterval(Const Count : integer);
+     Function getInterval : Integer;
 
-     Property LoopCount : Integer read getLoop write setLoop;
-     Property Speed : Integer read getSpeed write SetSpeed;
+     Procedure setText(Const value : String);
+     function getText : String;
+     Property Interval : Integer read getInterval write setInterval;
+
    end;
 
-   //Type writer class implementation of above interface
+
    TTypeWriter = class(TText,ITypeWriter)
    private
-
+     fTimer : TTimer; //loop of when to write letter
+     fIndex : integer; //current index of letter
+     fCount : integer; //count of letters
+     fText : String;   //the text;
    protected
-     Procedure TypeText;
-     Procedure SetLoop(Const Count : integer);
-     Function getLoop : Integer;
-     Function getSpeed  : Integer;
-     Procedure setSpeed(Const ms : Integer);
-   public
+     function getNext : Boolean;
+     Procedure createTimer;
+      Procedure WriteText;
+     Procedure SetInterval(Const Count : integer);
+     Function getInterval : Integer;
 
+     Procedure setText(Const value : String);
+     function getText : String;
+
+     procedure OnTimer(Sender : TObject); //loop of timer;
+   public
+     Procedure Start;
+     Procedure Stop;
+     constructor create(aOwner : TComponent);override;
    end;
 
 
 
 implementation
 
-Procedure TTypeWriter.TypeText;
+constructor TTypeWriter.create(aOwner : TComponent);
 begin
+  inherited;
 
+  fIndex := -1;
 end;
 
-Procedure TTypeWriter.SetLoop(Const Count : integer);
-begin
+ procedure TTypeWriter.OnTimer(Sender : TObject); //loop of timer;
+ begin
+   WriteText;
+ end;
 
+function TTypeWriter.getNext : boolean;
+begin
+  result := fIndex < fCount-1;
+  inc(fIndex);
 end;
 
-Function TTypeWriter.getLoop : Integer;
+Procedure TTypeWriter.WriteText;
 begin
-
+  if getNext then Text := Text + fText[fIndex];
 end;
 
-Function TTypeWriter.getSpeed  : Integer;
+Procedure TTypeWriter.createTimer;
 begin
-
+   fTimer := TTimer.create(self); //loop of when to write letter
+   fTimer.OnTimer := OnTimer; //event of timer
 end;
 
-Procedure TTypeWriter.setSpeed(Const ms : Integer);
+Procedure TTypeWriter.Start;
 begin
+  createTimer;
+end;
 
+Procedure TTypeWriter.Stop;
+begin
+  freeandnil(fTimer);
+end;
+
+Procedure TTypeWriter.setText(Const value : String);
+begin
+  fText := Text;
+  fCount := length(Value);
+end;
+
+function TTypeWriter.getText : String;
+begin
+  result := fText;
+end;
+
+Procedure TTypeWriter.SetInterval(Const Count : integer);
+begin
+  fTimer.Interval := Count;
+end;
+
+Function TTypeWriter.getInterval : Integer;
+begin
+  result := fTimer.Interval;
 end;
 
 
