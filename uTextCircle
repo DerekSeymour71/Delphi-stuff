@@ -1,0 +1,87 @@
+unit uCircle;
+
+interface
+
+uses
+   classes,
+   types,
+   FMX.Types,
+   Fmx.Objects,
+   FMX.Controls,
+   UiTypes ;
+
+type
+
+   ITextCircle = interface
+      function GetText : TText;
+      Property Text : TText read getText;
+   end;
+
+   TTextCircle = class(TCircle,ITextCircle)
+   private
+     fText : TText;  //this is going be created by the class, rather being injected.
+   protected
+      function GetText : TText;
+      procedure CreateText;
+      Procedure DestroyText;
+      Procedure SetTextDimensions;
+   public
+     Constructor Create(aOwner : TComponent); override;
+     Destructor Destroy;Override;
+   end;
+
+
+
+implementation
+
+Procedure TTextCircle.SetTextDimensions;
+begin
+  fText.Align := TAlignLayout.Center;
+  fText.Size.Width := width;
+  fText.Size.Height := height;
+end;
+
+procedure TTextCircle.CreateText;
+begin
+  fText := TText.create(Self);
+  addObject(FText);
+  SetTextDimensions;
+  fText.TextSettings.font.Family :=  'Berlin Sans FB';
+  fText.TextSettings.font.size := 30;
+//  fText.Size.PlatformDefault = False
+  fText.Text := 'Some text';
+  fText.TextSettings.FontColor := TalphaColorRec.Chartreuse;
+
+end;
+
+Procedure TTextCircle.DestroyText;
+begin
+  //do I need to remove it.... and destroy
+ // fText.Free;
+end;
+
+
+function TTextCircle.GetText : TText;
+begin
+  result := fText;
+end;
+
+ Constructor TTextCircle.Create(aOwner : TComponent);
+ begin
+    inherited;
+
+    Fill.Color := TAlphaColorRec.Null;
+    Size.Width := 250;
+    Size.Height := 250;
+//  Size.PlatformDefault := False
+    Stroke.Color := TAlphaColorRec.White;
+    createText;
+ end;
+
+ destructor TTextCircle.Destroy;
+ begin
+   //destroyText;
+   inherited;
+ end;
+
+end.
