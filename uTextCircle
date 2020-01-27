@@ -200,3 +200,18 @@ end;
  end;
 
 end.
+
+
+how to use typer
+procedure TForm8.Button2Click(Sender: TObject);
+var
+  typer : ITypeWriter;
+begin
+  typer := TTypeWriter.create(self);
+  typer.interval := 1000;  //prints a letter every second
+  typer.Text := 'Here''s some text to type';
+  AddObject(Typer as TTypewriter); //add the object to the view
+  Typer.Start;  
+end;
+
+I might wrap this in a simple builder at some stage.
