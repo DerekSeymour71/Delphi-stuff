@@ -43,7 +43,7 @@ type
      Procedure setText(Const value : String);
      function getText : String;
      Property Interval : Integer read getInterval write setInterval;
-
+     property Text : String read getText write setText;
    end;
 
 
@@ -53,9 +53,11 @@ type
      fIndex : integer; //current index of letter
      fCount : integer; //count of letters
      fText : String;   //the text;
+     fInterval : Integer;
    protected
+     Procedure SetWidth(Const Text : String); //I really don't know how to work this out, based on the font...
      function getNext : Boolean;
-     Procedure createTimer;
+
       Procedure WriteText;
      Procedure SetInterval(Const Count : integer);
      Function getInterval : Integer;
@@ -68,6 +70,7 @@ type
      Procedure Start;
      Procedure Stop;
      constructor create(aOwner : TComponent);override;
+
    end;
 
 
@@ -77,9 +80,15 @@ implementation
 constructor TTypeWriter.create(aOwner : TComponent);
 begin
   inherited;
-
-  fIndex := -1;
+  TextSettings.font.Family :=  'Berlin Sans FB';
+  TextSettings.font.size := 30;
+  TextSettings.FontColor := TalphaColorRec.Chartreuse;
 end;
+
+ Procedure TTypeWriter.SetWidth(Const Text : String); //I really don't know how to work this out, based on the font...
+ begin                                    //so for now I'll 'guestimate it
+   width := 300; //blunt force...lol
+ end;
 
  procedure TTypeWriter.OnTimer(Sender : TObject); //loop of timer;
  begin
@@ -94,18 +103,20 @@ end;
 
 Procedure TTypeWriter.WriteText;
 begin
-  if getNext then Text := Text + fText[fIndex];
-end;
+  if getNext then
+  begin
+    Text := Text + fText[fIndex];
+  end
+  else
+  begin
 
-Procedure TTypeWriter.createTimer;
-begin
-   fTimer := TTimer.create(self); //loop of when to write letter
-   fTimer.OnTimer := OnTimer; //event of timer
+  end;
 end;
 
 Procedure TTypeWriter.Start;
 begin
-  createTimer;
+   fTimer := TTimer.create(self); //loop of when to write letter
+   fTimer.OnTimer := OnTimer; //event of timer
 end;
 
 Procedure TTypeWriter.Stop;
@@ -115,8 +126,10 @@ end;
 
 Procedure TTypeWriter.setText(Const value : String);
 begin
-  fText := Text;
-  fCount := length(Value);
+  fText := Value;
+  fCount := length(fText);
+  fIndex := -1;
+  SetWidth(Value);
 end;
 
 function TTypeWriter.getText : String;
@@ -126,12 +139,12 @@ end;
 
 Procedure TTypeWriter.SetInterval(Const Count : integer);
 begin
-  fTimer.Interval := Count;
+  fInterval := Count;
 end;
 
 Function TTypeWriter.getInterval : Integer;
 begin
-  result := fTimer.Interval;
+  result := fInterval;
 end;
 
 
