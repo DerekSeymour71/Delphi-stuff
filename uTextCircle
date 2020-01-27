@@ -8,12 +8,12 @@ uses
    FMX.Types,
    Fmx.Objects,
    FMX.Controls,
-   UiTypes ;
+   UiTypes;
 
 type
 
    ITextCircle = interface
-      function GetText : TText;
+      Function GetText : TText;
       Property Text : TText read getText;
    end;
 
@@ -31,8 +31,62 @@ type
    end;
 
 
+   //display text like a type-writer
+   ITypeWriter = interface
+     Procedure TypeText;
+     Procedure SetLoop(Const Count : integer);
+     Function getLoop : Integer;
+     Function getSpeed  : Integer;
+     Procedure setSpeed(Const ms : Integer);
+
+     Property LoopCount : Integer read getLoop write setLoop;
+     Property Speed : Integer read getSpeed write SetSpeed;
+   end;
+
+   //Type writer class implementation of above interface
+   TTypeWriter = class(TText,ITypeWriter)
+   private
+
+   protected
+     Procedure TypeText;
+     Procedure SetLoop(Const Count : integer);
+     Function getLoop : Integer;
+     Function getSpeed  : Integer;
+     Procedure setSpeed(Const ms : Integer);
+   public
+
+   end;
+
+
 
 implementation
+
+Procedure TTypeWriter.TypeText;
+begin
+
+end;
+
+Procedure TTypeWriter.SetLoop(Const Count : integer);
+begin
+
+end;
+
+Function TTypeWriter.getLoop : Integer;
+begin
+
+end;
+
+Function TTypeWriter.getSpeed  : Integer;
+begin
+
+end;
+
+Procedure TTypeWriter.setSpeed(Const ms : Integer);
+begin
+
+end;
+
+
 
 Procedure TTextCircle.SetTextDimensions;
 begin
