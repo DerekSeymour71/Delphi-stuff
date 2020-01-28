@@ -55,10 +55,10 @@ type
      fText : String;   //the text;
      fInterval : Integer;
    protected
-     Procedure SetWidth(Const Text : String); //I really don't know how to work this out, based on the font...
+     Procedure SetTextWidth(Const Text : String);   //I really don't know how to work this out, based on the font...
      function getNext : Boolean;
 
-      Procedure WriteText;
+     Procedure WriteText;
      Procedure SetInterval(Const Count : integer);
      Function getInterval : Integer;
 
@@ -83,10 +83,10 @@ begin
   TextSettings.font.Family :=  'Berlin Sans FB';
   TextSettings.font.size := 30;
   TextSettings.FontColor := TalphaColorRec.Chartreuse;
-  setinterval(250); //1/4 sec
+  setinterval(100);
 end;
 
- Procedure TTypeWriter.SetWidth(Const Text : String); //I really don't know how to work this out, based on the font...
+ Procedure TTypeWriter.SetTextWidth(Const Text : String); //I really don't know how to work this out, based on the font...
  begin                                    //so for now I'll 'guestimate it
    width := 300; //blunt force...lol
  end;
@@ -98,7 +98,7 @@ end;
 
 function TTypeWriter.getNext : boolean;
 begin
-  result := fIndex < fCount-1;
+  result := fIndex < fCount;
   inc(fIndex);
 end;
 
@@ -110,15 +110,16 @@ begin
   end
   else
   begin
-
+    Stop; //stop timing
   end;
 end;
 
 Procedure TTypeWriter.Start;
 begin
-   fTimer := TTimer.create(self); //loop of when to write letter
-   fTimer.Interval := getInterval;
-   fTimer.OnTimer := OnTimer; //event of timer
+  Text.Empty;
+  fTimer := TTimer.create(self); //loop of when to write letter
+  fTimer.Interval := getInterval;
+  fTimer.OnTimer := OnTimer; //event of timer
 end;
 
 Procedure TTypeWriter.Stop;
@@ -131,7 +132,7 @@ begin
   fText := Value;
   fCount := length(fText);
   fIndex := -1;
-  SetWidth(Value);
+  SetTextWidth(Value);
 end;
 
 function TTypeWriter.getText : String;
@@ -168,7 +169,6 @@ begin
 //  fText.Size.PlatformDefault = False
   fText.Text := 'Some text';
   fText.TextSettings.FontColor := TalphaColorRec.Chartreuse;
-
 end;
 
 Procedure TTextCircle.DestroyText;
@@ -186,7 +186,6 @@ end;
  Constructor TTextCircle.Create(aOwner : TComponent);
  begin
     inherited;
-
     Fill.Color := TAlphaColorRec.Null;
     Size.Width := 250;
     Size.Height := 250;
@@ -202,15 +201,3 @@ end;
  end;
 
 end.
-
-
-//usage
-procedure TForm8.Button2Click(Sender: TObject);
-var
-  typer : ITypeWriter;
-begin
-  typer := TTypeWriter.create(self);
-  typer.Text := 'Here''s some text to type';
-  AddObject(Typer as TTypewriter);
-  Typer.Start;
-end;
