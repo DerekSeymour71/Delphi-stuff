@@ -75,7 +75,7 @@ type
 
     TTypeWriterDecorator = class(TText,ITypeWriter)
    private
-     fTyper : TTypeWriter;
+     fTyper : ITypeWriter;
    protected
      Procedure SetTextWidth(Const Text : String);
      function getNext : Boolean;
