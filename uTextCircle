@@ -73,7 +73,27 @@ type
 
    end;
 
+    TTypeWriterDecorator = class(TText,ITypeWriter)
+   private
+     fTyper : TTypeWriter;
+   protected
+     Procedure SetTextWidth(Const Text : String);
+     function getNext : Boolean;
 
+     Procedure WriteText;
+     Procedure SetInterval(Const Count : integer);
+     Function getInterval : Integer;
+
+     Procedure setText(Const value : String);
+     function getText : String;
+
+     procedure OnTimer(Sender : TObject); //loop of timer;
+   public
+     Procedure Start;
+     Procedure Stop;
+     constructor create(aOwner : TComponent; const Typer : ITypeWriter);
+
+   end;
 
 implementation
 
