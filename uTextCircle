@@ -36,7 +36,7 @@ type
    ITypeWriter = interface
      Procedure Start;
      Procedure Stop;
-     Procedure WriteText;
+    // Procedure WriteText;  don't think this should be part of interface, as this is internal stuff. (i.e. you as the consumer, don't care about it, or shouldn't)
      Procedure SetInterval(Const Count : integer);
      Function getInterval : Integer;
 
