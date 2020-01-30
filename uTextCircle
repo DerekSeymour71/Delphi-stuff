@@ -1,6 +1,12 @@
 unit uCircle;
 //twitch demo of code  https://www.twitch.tv/videos/543918630
 
+
+//this was just an idea really - but now I've got a working demo, I'll sit on it a bit before I dive head-first and introduce other decoraroratos, 
+//with the current set-up. One of the main issues with this is : I can't work out how big a string is in terms of position. 
+// I've done this before but I need to dust off that knowledge. I wasn't doing it this way. I was using a different way.
+//there are certain things which don't sit right with me in terms of design at the moment.. but it works. 
+
 interface
 
 uses
