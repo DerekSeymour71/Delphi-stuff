@@ -9,7 +9,8 @@ uses
    FMX.Types,
    Fmx.Objects,
    FMX.Controls,
-   UiTypes;
+   UiTypes,
+   FMX.Graphics;
 
 type
 
@@ -31,19 +32,40 @@ type
      Destructor Destroy;Override;
    end;
 
+   ITypeWriter = interface;
+
+
+   TOnWriteLetterProc = reference to Procedure(Sender : ITypeWriter;
+                               Const Letter : Char);
 
    //display text like a type-writer
    ITypeWriter = interface
      Procedure Start;
      Procedure Stop;
-    // Procedure WriteText;  don't think this should be part of interface, as this is internal stuff. (i.e. you as the consumer, don't care about it, or shouldn't)
-     Procedure SetInterval(Const Count : integer);
-     Function getInterval : Integer;
+     function GetText : String;
+     function GetIndex : integer;
+     Procedure SetText(const Value : String);
+     function getTextSettings : TTextSettings;
+     Procedure SetWidth(Const Width : Single);
+     function getWidth : Single;
+     Procedure SetHeight(Const Height : Single);
+     function getHeight : Single;
 
-     Procedure setText(Const value : String);
-     function getText : String;
+     Function WriteLetter : Boolean;
+     function GetAfterWriteLetter : TOnWriteLetterProc;
+     Procedure SetAfterWriteLetter(Const value : TOnWriteLetterProc);
+     Procedure SetInterval(Const Count : integer);
+     Function  getInterval : Integer;
+
+     Procedure setSentence(Const value : String);
+     function getSentence : String;
      Property Interval : Integer read getInterval write setInterval;
-     property Text : String read getText write setText;
+     property Sentence : String read getSentence write setSentence;
+     Property Text : String read GetText write SetText;
+     Property Index : integer read getIndex;
+     Property OnAfterWriteLetter : TOnWriteLetterProc read GetAfterWriteLetter write setAfterWriteLetter;
+     Property Width : Single read getWidth write setWidth;
+     Property Height : Single read getHeight write SetHeight;
    end;
 
 
@@ -52,50 +74,104 @@ type
      fTimer : TTimer; //loop of when to write letter
      fIndex : integer; //current index of letter
      fCount : integer; //count of letters
-     fText : String;   //the text;
+     fSentence : String;   //the text;
      fInterval : Integer;
+     fOnAfterWriteLetter : TOnWriteLetterProc;
    protected
      Procedure SetTextWidth(Const Text : String);   //I really don't know how to work this out, based on the font...
      function getNext : Boolean;
+     function getIndex : integer;
+     function GetAfterWriteLetter : TOnWriteLetterProc;
+     Procedure SetAfterWriteLetter(Const value : TOnWriteLetterProc);
 
-     Procedure WriteText;
+     Function WriteLetter : Boolean;virtual;
      Procedure SetInterval(Const Count : integer);
      Function getInterval : Integer;
 
-     Procedure setText(Const value : String);
-     function getText : String;
+     Procedure setSentence(Const value : String);
+     function getSentence : String;
 
-     procedure OnTimer(Sender : TObject); //loop of timer;
+     procedure OnTimer(Sender : TObject); virtual; //loop of timer;
    public
-     Procedure Start;
-     Procedure Stop;
+     Procedure Start; virtual;
+     Procedure Stop;  virtual;
      constructor create(aOwner : TComponent);override;
 
    end;
 
-    TTypeWriterDecorator = class(TText,ITypeWriter)
+   TTypeWriterDecorator = class(TTypeWriter,ITypeWriter)
    private
      fTyper : ITypeWriter;
    protected
-     Procedure SetTextWidth(Const Text : String);
-     function getNext : Boolean;
+     Function WriteLetter : Boolean; Override;
 
-     Procedure WriteText;
-     Procedure SetInterval(Const Count : integer);
-     Function getInterval : Integer;
-
-     Procedure setText(Const value : String);
-     function getText : String;
-
-     procedure OnTimer(Sender : TObject); //loop of timer;
    public
-     Procedure Start;
-     Procedure Stop;
-     constructor create(aOwner : TComponent; const Typer : ITypeWriter);
+     constructor create(aOwner : TComponent; const Typer : ITypeWriter); virtual;
+   end;
 
+   TCursorTypeWriter = class(TTypeWriterDecorator,ITypeWriter)
+   private
+      fCursor : TText;
+
+   protected
+      Procedure SetCursor(Sender : TObject);
+      Function WriteLetter : Boolean; override;
+   public
+      constructor create(aOwner : TComponent; const Typer : ITypeWriter); Override;
    end;
 
 implementation
+
+  constructor TTypeWriterDecorator.create(aOwner : TComponent; const Typer : ITypeWriter);
+  begin
+    inherited create(aOwner);
+    fTyper := Typer;
+  end;
+
+  function TTypeWriterDecorator.WriteLetter : Boolean;
+  begin
+    result := fTyper.writeLetter;
+
+  end;
+
+
+  constructor TCursorTypeWriter.create(aOwner : TComponent; const Typer : ITypeWriter);
+  begin
+    inherited create(aOwner,Typer);
+    fTimer := TTimer.create(Self);
+    fTimer.Interval := 400;
+    FTimer.OnTimer := SetCursor;
+    //SetTextWidth(Typer.Text);
+    fCursor := TText.create(Self);
+   // fCursor.text := '@';
+    fCursor.Visible := false;
+    fCursor.TextSettings := fTyper.getTextSettings; //copy the text settings
+    fCursor.Width := width + 5;
+    fCursor.height := height + 5;
+    addObject(FCursor);
+  end;
+
+  Procedure TCursorTypeWriter.SetCursor(Sender : TObject);
+  begin
+     if fCursor.text = '|' then FCursor.text := ' '
+     else
+       fCursor.text := '|';
+  end;
+
+  Function TCursorTypeWriter.WriteLetter : boolean;
+  begin
+    result := inherited WriteLetter;
+    //if result then
+    begin
+      Text := '';
+      Text := fTyper.Text + fCursor.Text;
+    end
+    //else
+    //begin
+
+   // end;
+  end;
+
 
 constructor TTypeWriter.create(aOwner : TComponent);
 begin
@@ -103,8 +179,25 @@ begin
   TextSettings.font.Family :=  'Berlin Sans FB';
   TextSettings.font.size := 30;
   TextSettings.FontColor := TalphaColorRec.Chartreuse;
-  setinterval(100);
+  TextSettings.HorzAlign := TTextAlign.Leading;
+  setinterval(150);
 end;
+
+ function TTypeWriter.getIndex : integer;
+ begin
+   result := fIndex;
+ end;
+
+ function TTypeWriter.GetAfterWriteLetter : TOnWriteLetterProc;
+ begin
+    result := fOnAfterWriteLetter;
+ end;
+
+ Procedure TTypeWriter.SetAfterWriteLetter(Const value : TOnWriteLetterProc);
+ begin
+   fOnAfterWriteLetter := Value;
+ end;
+
 
  Procedure TTypeWriter.SetTextWidth(Const Text : String); //I really don't know how to work this out, based on the font...
  begin                                    //so for now I'll 'guestimate it
@@ -113,7 +206,7 @@ end;
 
  procedure TTypeWriter.OnTimer(Sender : TObject); //loop of timer;
  begin
-   WriteText;
+   WriteLetter;
  end;
 
 function TTypeWriter.getNext : boolean;
@@ -122,11 +215,13 @@ begin
   inc(fIndex);
 end;
 
-Procedure TTypeWriter.WriteText;
+function TTypeWriter.WriteLetter : boolean;
 begin
-  if getNext then
+  result := getNext;
+  if result then
   begin
-    Text := Text + fText[fIndex];
+    Text := Text + fSentence[fIndex];
+    if assigned(fOnAfterWriteLetter) then fOnAfterWriteLetter(Self,fSentence[fIndex]);
   end
   else
   begin
@@ -147,17 +242,17 @@ begin
   freeandnil(fTimer);
 end;
 
-Procedure TTypeWriter.setText(Const value : String);
+Procedure TTypeWriter.setSentence(Const value : String);
 begin
-  fText := Value;
-  fCount := length(fText);
+  fSentence := Value;
+  fCount := length(fSentence);
   fIndex := -1;
-  SetTextWidth(Value);
+  //SetTextWidth(Value);
 end;
 
-function TTypeWriter.getText : String;
+function TTypeWriter.getSentence : String;
 begin
-  result := fText;
+  result := fSentence;
 end;
 
 Procedure TTypeWriter.SetInterval(Const Count : integer);
