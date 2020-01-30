@@ -316,3 +316,23 @@ end;
  end;
 
 end.
+
+//usage notes, as it's not that easy to create your decorators....
+
+procedure TForm8.Button2Click(Sender: TObject);
+var
+  typer : ITypeWriter;
+
+begin
+  Typer := TTypeWriter.Create(Self); //here is the typer you want to decorate
+  typer.Sentence := 'Here''s some text to type and I hope this works because I''m over it';
+
+  //addObject(Typer as TTypeWriter);  //no point adding it, in this case, anyway.
+  Typer :=  TCursorTypeWriter.create(Self,typer);  //now I wrap the typer with this decorator
+  Typer.width := 300;
+  Typer.height := 200;
+  addObject(Typer as TCursorTypeWriter);
+  Typer.Start;
+end;
+
+
