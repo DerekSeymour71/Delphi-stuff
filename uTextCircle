@@ -1,6 +1,5 @@
-//twitch demo of code  https://www.twitch.tv/videos/543918630
-
 unit uCircle;
+//twitch demo of code  https://www.twitch.tv/videos/543918630
 
 interface
 
@@ -122,7 +121,22 @@ type
       constructor create(aOwner : TComponent; const Typer : ITypeWriter); Override;
    end;
 
+   Function GetCursorTyper(aOwner : TFmxObject; Const Words : String) : ITypeWriter;
+
 implementation
+
+  Function GetCursorTyper(aOwner : TFmxObject; Const Words : String) : ITypeWriter;
+   begin
+     result := TTypeWriter.Create(aOwner);
+     result.Sentence := words;
+
+     //addObject(Typer as TTypeWriter);
+      Result :=  TCursorTypeWriter.create(aOwner,result);
+      Result.width := 500;
+      Result.height := 300;
+      aOwner.addObject(result as TCursorTypeWriter);
+      //Typer.Start;
+   end;
 
   constructor TTypeWriterDecorator.create(aOwner : TComponent; const Typer : ITypeWriter);
   begin
@@ -319,22 +333,13 @@ end;
 
 end.
 
-//usage notes, as it's not that easy to create your decorators....
-
+//usage 
 procedure TForm8.Button2Click(Sender: TObject);
 var
   typer : ITypeWriter;
 
 begin
-  Typer := TTypeWriter.Create(Self); //here is the typer you want to decorate
-  typer.Sentence := 'Here''s some text to type and I hope this works because I''m over it';
-
-  //addObject(Typer as TTypeWriter);  //no point adding it, in this case, anyway.
-  Typer :=  TCursorTypeWriter.create(Self,typer);  //now I wrap the typer with this decorator
-  Typer.width := 300;
-  Typer.height := 200;
-  addObject(Typer as TCursorTypeWriter);
-  Typer.Start;
+  typer := GetCursorTyper(MainRect,'Here''s some text to type and I hope this works because I''m over it.');  //--main rect is a TRectangle shape dropped on form
+  Typer.start;
 end;
-
 
