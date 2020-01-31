@@ -223,3 +223,15 @@ end;
 
 end.
 
+
+Example usage = slightly different than before
+
+  FTextIter := TTextIterator.create('Some text');  //create an iterator for text;
+  FTextTyper := TTextTyper.create(FTextIter);      //create a typer and inject the iterator
+  
+  //here is when the typer needs to put the text somewhere, it calls this method - expecting a destination to be legit.
+  FTextTyper.TextDestination := procedure(Sender : ITextTyper; var Destination : TText)
+  begin
+    //Destination :=  Text1;
+  end;
+  FTextTyper.Start;
