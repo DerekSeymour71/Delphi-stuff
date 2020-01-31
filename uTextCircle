@@ -1,11 +1,6 @@
+//twitch demo of previous code  https://www.twitch.tv/videos/543918630
 unit uCircle;
-//twitch demo of code  https://www.twitch.tv/videos/543918630
-
-
-//this was just an idea really - but now I've got a working demo, I'll sit on it a bit before I dive head-first and introduce other decoraroratos, 
-//with the current set-up. One of the main issues with this is : I can't work out how big a string is in terms of position. 
-// I've done this before but I need to dust off that knowledge. I wasn't doing it this way. I was using a different way.
-//there are certain things which don't sit right with me in terms of design at the moment.. but it works. 
+ 
 
 interface
 
@@ -22,8 +17,8 @@ uses
 type
 
    ITextCircle = interface
-      Function GetText : TText;
-      Property Text : TText read getText;
+    Function GetText : TText;
+    Property Text : TText read getText;
    end;
 
    TTextCircle = class(TCircle,ITextCircle)
@@ -39,255 +34,144 @@ type
      Destructor Destroy;Override;
    end;
 
-   ITypeWriter = interface;
 
-
-   TOnWriteLetterProc = reference to Procedure(Sender : ITypeWriter;
-                               Const Letter : Char);
-
-   //display text like a type-writer
-   ITypeWriter = interface
-     Procedure Start;
-     Procedure Stop;
-     function GetText : String;
-     function GetIndex : integer;
-     Procedure SetText(const Value : String);
-     function getTextSettings : TTextSettings;
-     Procedure SetWidth(Const Width : Single);
-     function getWidth : Single;
-     Procedure SetHeight(Const Height : Single);
-     function getHeight : Single;
-
-     Function WriteLetter : Boolean;
-     function GetAfterWriteLetter : TOnWriteLetterProc;
-     Procedure SetAfterWriteLetter(Const value : TOnWriteLetterProc);
-     Procedure SetInterval(Const Count : integer);
-     Function  getInterval : Integer;
-
-     Procedure setSentence(Const value : String);
-     function getSentence : String;
-     Property Interval : Integer read getInterval write setInterval;
-     property Sentence : String read getSentence write setSentence;
-     Property Text : String read GetText write SetText;
-     Property Index : integer read getIndex;
-     Property OnAfterWriteLetter : TOnWriteLetterProc read GetAfterWriteLetter write setAfterWriteLetter;
-     Property Width : Single read getWidth write setWidth;
-     Property Height : Single read getHeight write SetHeight;
+   ITextIterator = interface
+     Function getNext : Boolean;
+     function getLetter : String;
+     property Letter : String read getLetter;
    end;
 
+  TTextIterator = class(TInterfacedObject,ITextIterator)
+  private
+    fIndex : integer;
+    fText : String;
+    fLetter : String;
+  protected
+    Function getNext : Boolean;
+    Function getLetter : String;
+  public
+    Constructor Create(Const Text : String);
+  end;
 
-   TTypeWriter = class(TText,ITypeWriter)
-   private
-     fTimer : TTimer; //loop of when to write letter
-     fIndex : integer; //current index of letter
-     fCount : integer; //count of letters
-     fSentence : String;   //the text;
-     fInterval : Integer;
-     fOnAfterWriteLetter : TOnWriteLetterProc;
-   protected
-     Procedure SetTextWidth(Const Text : String);   //I really don't know how to work this out, based on the font...
-     function getNext : Boolean;
-     function getIndex : integer;
-     function GetAfterWriteLetter : TOnWriteLetterProc;
-     Procedure SetAfterWriteLetter(Const value : TOnWriteLetterProc);
+   ITextTyper = interface;
 
-     Function WriteLetter : Boolean;virtual;
-     Procedure SetInterval(Const Count : integer);
-     Function getInterval : Integer;
+   TRequestTextDestination = reference to procedure(Sender : ITextTyper; var Destination : TText);
 
-     Procedure setSentence(Const value : String);
-     function getSentence : String;
+  ITextTyper = interface
+    function GetRequestTextDestination : TRequestTextDestination;
+    Procedure SetRequestTextDestination(Const RequestTextDestination : TRequestTextDestination);
+    procedure WriteLetter(Const Destination : TText);
+    Procedure Start;
+    Procedure Stop;
+    property TextDestination : TRequestTextDestination read GetRequestTextDestination  write SetRequestTextDestination;
+  end;
 
-     procedure OnTimer(Sender : TObject); virtual; //loop of timer;
-   public
-     Procedure Start; virtual;
-     Procedure Stop;  virtual;
-     constructor create(aOwner : TComponent);override;
 
-   end;
 
-   TTypeWriterDecorator = class(TTypeWriter,ITypeWriter)
-   private
-     fTyper : ITypeWriter;
-   protected
-     Function WriteLetter : Boolean; Override;
 
-   public
-     constructor create(aOwner : TComponent; const Typer : ITypeWriter); virtual;
-   end;
+  TTextTyper = class(TInterfacedObject,ITextTyper)
+  private
+    FTextIterator : ITextIterator;
+    FTimer : TTimer;
+    fDestination : TText;
+    FRequestTextDestination : TRequestTextDestination;
+  protected
+     function GetRequestTextDestination : TRequestTextDestination;
+     Procedure SetRequestTextDestination(Const RequestTextDestination : TRequestTextDestination);
+     Procedure OnTimer(Sender : TObject);
+     procedure WriteLetter(Const Destination : TText);
 
-   TCursorTypeWriter = class(TTypeWriterDecorator,ITypeWriter)
-   private
-      fCursor : TText;
+  public
+    Procedure Start;
+    Procedure Stop;
+    Constructor Create(Const TextIterator : ITextIterator);
+    Destructor Destroy; Override;
 
-   protected
-      Procedure SetCursor(Sender : TObject);
-      Function WriteLetter : Boolean; override;
-   public
-      constructor create(aOwner : TComponent; const Typer : ITypeWriter); Override;
-   end;
+  end;
 
-   Function GetCursorTyper(aOwner : TFmxObject; Const Words : String) : ITypeWriter;
+
+
+
 
 implementation
 
-  Function GetCursorTyper(aOwner : TFmxObject; Const Words : String) : ITypeWriter;
-   begin
-     result := TTypeWriter.Create(aOwner);
-     result.Sentence := words;
+ function TTextTyper.GetRequestTextDestination : TRequestTextDestination;
+ begin
+   result := FRequestTextDestination;
+ end;
 
-     //addObject(Typer as TTypeWriter);
-      Result :=  TCursorTypeWriter.create(aOwner,result);
-      Result.width := 500;
-      Result.height := 300;
-      aOwner.addObject(result as TCursorTypeWriter);
-      //Typer.Start;
+ Procedure TTextTyper.SetRequestTextDestination(Const RequestTextDestination : TRequestTextDestination);
+ begin
+   FRequestTextDestination := RequestTextDestination;
+ end;
+
+Procedure TTextTyper.Start;
+begin
+  fTimer.Enabled := true;
+end;
+
+Procedure TTextTyper.Stop;
+begin
+  fTimer.Enabled := False;
+end;
+
+ Procedure TTextTyper.OnTimer(Sender : TObject);
+ begin
+   if assigned(FRequestTextDestination) then
+   begin
+     FRequestTextDestination(Self,fDestination);
+     if assigned(fDestination) then
+     begin
+       WriteLetter(FDestination);
+     end;
    end;
 
-  constructor TTypeWriterDecorator.create(aOwner : TComponent; const Typer : ITypeWriter);
-  begin
-    inherited create(aOwner);
-    fTyper := Typer;
-  end;
+ end;
 
-  function TTypeWriterDecorator.WriteLetter : Boolean;
-  begin
-    result := fTyper.writeLetter;
-
-  end;
-
-
-  constructor TCursorTypeWriter.create(aOwner : TComponent; const Typer : ITypeWriter);
-  begin
-    inherited create(aOwner,Typer);
-    fTimer := TTimer.create(Self);
-    fTimer.Interval := 400;
-    FTimer.OnTimer := SetCursor;
-    //SetTextWidth(Typer.Text);
-    fCursor := TText.create(Self);
-   // fCursor.text := '@';
-    fCursor.Visible := false;
-    fCursor.TextSettings := fTyper.getTextSettings; //copy the text settings
-    fCursor.Width := width + 5;
-    fCursor.height := height + 5;
-    addObject(FCursor);
-  end;
-
-  Procedure TCursorTypeWriter.SetCursor(Sender : TObject);
-  begin
-     if fCursor.text = '|' then FCursor.text := ' '
-     else
-       fCursor.text := '|';
-  end;
-
-  Function TCursorTypeWriter.WriteLetter : boolean;
-  begin
-    result := inherited WriteLetter;
-    //if result then
-    begin
-      Text := '';
-      Text := fTyper.Text + fCursor.Text;
-    end
-    //else
-    //begin
-
-   // end;
-  end;
-
-
-constructor TTypeWriter.create(aOwner : TComponent);
-begin
-  inherited;
-  TextSettings.font.Family :=  'Berlin Sans FB';
-  TextSettings.font.size := 30;
-  TextSettings.FontColor := TalphaColorRec.Chartreuse;
-  TextSettings.HorzAlign := TTextAlign.Leading;
-  setinterval(150);
-end;
-
- function TTypeWriter.getIndex : integer;
+ procedure TTextTyper.WriteLetter(Const Destination : TText);
  begin
-   result := fIndex;
+   if FTextIterator.getNext then
+     Destination.text := Destination.Text + FTextIterator.Letter;
  end;
 
- function TTypeWriter.GetAfterWriteLetter : TOnWriteLetterProc;
+ Constructor TTextTyper.Create(Const TextIterator : ITextIterator);
  begin
-    result := fOnAfterWriteLetter;
+   inherited create;
+   Assert(assigned(TextIterator),'Iter is empty');
+  // Assert(Assigned(Destination),'No text to write to');
+   FTextIterator :=  TextIterator;
+  // fDestination := Destination;
+   fTimer := TTimer.create(nil);
+   fTimer.Interval := 250;
+   FTimer.OnTimer := Self.OnTimer;
  end;
 
- Procedure TTypeWriter.SetAfterWriteLetter(Const value : TOnWriteLetterProc);
+ Destructor TTextTyper.Destroy;
  begin
-   fOnAfterWriteLetter := Value;
+   fTimer.free;
+   inherited Destroy;
  end;
 
-
- Procedure TTypeWriter.SetTextWidth(Const Text : String); //I really don't know how to work this out, based on the font...
- begin                                    //so for now I'll 'guestimate it
-   width := 300; //blunt force...lol
- end;
-
- procedure TTypeWriter.OnTimer(Sender : TObject); //loop of timer;
- begin
-   WriteLetter;
- end;
-
-function TTypeWriter.getNext : boolean;
+constructor TTextIterator.Create(Const Text : String);
 begin
-  result := fIndex < fCount;
-  inc(fIndex);
+  inherited create;
+  fText := Text;
+  fIndex := 0;
+  fLetter := '';
 end;
 
-function TTypeWriter.WriteLetter : boolean;
+Function TTextIterator.getLetter : String;
 begin
-  result := getNext;
-  if result then
-  begin
-    Text := Text + fSentence[fIndex];
-    if assigned(fOnAfterWriteLetter) then fOnAfterWriteLetter(Self,fSentence[fIndex]);
-  end
-  else
-  begin
-    Stop; //stop timing
-  end;
+  result := fLetter;
 end;
 
-Procedure TTypeWriter.Start;
+Function TTextIterator.getNext : Boolean;
 begin
-  Text.Empty;
-  fTimer := TTimer.create(self); //loop of when to write letter
-  fTimer.Interval := getInterval;
-  fTimer.OnTimer := OnTimer; //event of timer
+  inc(FIndex);
+  result := (length(fText) > 0) And (fIndex <= length(FText));
+  if result then fLetter := fText[FIndex];
+
 end;
-
-Procedure TTypeWriter.Stop;
-begin
-  freeandnil(fTimer);
-end;
-
-Procedure TTypeWriter.setSentence(Const value : String);
-begin
-  fSentence := Value;
-  fCount := length(fSentence);
-  fIndex := -1;
-  //SetTextWidth(Value);
-end;
-
-function TTypeWriter.getSentence : String;
-begin
-  result := fSentence;
-end;
-
-Procedure TTypeWriter.SetInterval(Const Count : integer);
-begin
-  fInterval := Count;
-end;
-
-Function TTypeWriter.getInterval : Integer;
-begin
-  result := fInterval;
-end;
-
-
 
 Procedure TTextCircle.SetTextDimensions;
 begin
@@ -338,14 +222,4 @@ end;
  end;
 
 end.
-
-//usage 
-procedure TForm8.Button2Click(Sender: TObject);
-var
-  typer : ITypeWriter;
-
-begin
-  typer := GetCursorTyper(MainRect,'Here''s some text to type and I hope this works because I''m over it.');  //--main rect is a TRectangle shape dropped on form
-  Typer.start;
-end;
 
