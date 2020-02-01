@@ -66,7 +66,7 @@ type
      function getTextSettings : TTextSettings;
      procedure SetText(const Value : String);
      Procedure DisplayCursor;
-     Procedure removeCursor;
+   // Procedure removeCursor;
      function  GetText : String;
      property  Text : String read getText write setText;
      Property TextSettings : TTextSettings read getTextSettings;
@@ -127,7 +127,7 @@ type
       function getTextSettings : TTextSettings;
    protected
      Procedure DisplayCursor;
-     Procedure removeCursor;
+
      Procedure SetCursor(Sender : TObject);
    public
      constructor Create(aOwner : TComponent);Override;
@@ -158,13 +158,18 @@ type
    end;
 
    //simple factory of a basic typer
-  function getTyper(const text : String) : ITextTyper;
+  function getTyper(const text : ITextCursor) : ITextTyper;
 
 implementation
 
-function getTyper(const text : String) : ITextTyper;
+function getTyper(const text : ITextCursor) : ITextTyper;
 begin
-  result := TTextTyper.create( TTextIterator.create(Text));
+  result := TTextTyper.create( TTextIterator.create(Text.Text));
+  Text.Text := ''; //clear it out , as it's going to be typed now
+  result.TextDestination := procedure(Sender : ITextTyper; var Destination : ITextCursor)
+  begin
+    Destination :=  Text;
+  end;
 end;
 
 
@@ -213,7 +218,7 @@ end;
     if fCursor = '|' then Text := Text + fCursor;  //add it back in if neccessary
   end;
 
-
+  (*
   Procedure TTextCursor.removeCursor;
   var
     i : integer;
@@ -229,11 +234,10 @@ end;
       Text := FText;
     end;
   end;
-
+   *)
   Procedure TTextCursor.DisplayCursor;
   begin
-    RemoveCursor;  //remove previous cursor;
-    Text := Text + fCursor;
+    SetText(Text + FCursor);
   end;
 
   function TTextCursor.getTextSettings : TTextSettings;
@@ -245,7 +249,7 @@ end;
   begin
     inherited create(aOwner);
     fTimer := TTimer.create(aOwner);
-    fTimer.Interval := 100;
+    fTimer.Interval := 500;
     fTimer.OnTimer := SetCursor;
     fCursor := '';
     TextSettings.VertAlign := TTextAlign.Leading;
@@ -325,7 +329,7 @@ end;
    FTextIterator :=  TextIterator;
   // fDestination := Destination;
    fTimer := TTimer.create(nil);
-   fTimer.Interval := 250;
+   fTimer.Interval := 100;
    FTimer.OnTimer := Self.OnTimer;
  end;
 
@@ -405,4 +409,28 @@ end;
  end;
 
 end.
+
+Usage
+
+procedure TForm8.Button2Click(Sender: TObject);
+var
+  TextCursor : TTextCursor;
+
+begin
+
+
+  TextCursor := TTextCursor.create(Self);
+  TextCursor.TextSettings.FontColor := TalphaColorRec.white;
+  TextCursor.Width := 500;
+  TextCursor.Height := 300;
+  TextCursor.Font.Size := 20;
+  TextCursor.TextSettings.FontColor := TAlphaColorRec.Chartreuse;
+  addObject(TextCursor as TTextCursor);
+  TextCursor.Text := 'Here''s an idea you lunatic....why did you think this was a good idea?';
+
+  fTextTyper := getTyper(TextCursor); //inject the text into the typer
+  FTextTyper.Start; //typing
+
+
+end;
 
