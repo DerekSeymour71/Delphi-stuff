@@ -11,7 +11,9 @@ uses
    Fmx.Objects,
    FMX.Controls,
    UiTypes,
-   FMX.Graphics;
+   FMX.Graphics,
+   generics.collections,
+   rtti;
 
 type
 
@@ -54,13 +56,32 @@ type
 
    ITextTyper = interface;
 
+    ITextCursor = interface
+     procedure setWidth(const Value : Single);
+     function getWidth : Single;
+
+     procedure setHeight(const Value : Single);
+     function getHeight : Single;
+
+     function getTextSettings : TTextSettings;
+     procedure SetText(const Value : String);
+     Procedure DisplayCursor;
+     Procedure removeCursor;
+     function  GetText : String;
+     property  Text : String read getText write setText;
+     Property TextSettings : TTextSettings read getTextSettings;
+     Property Width : Single read getWidth write setWidth;
+     Property Height : Single read getHeight write setHeight;
+   end;
+
+
    TRequestTextDestination = reference to procedure(Sender : ITextTyper;
-                                                    var Destination : TText);
+                                                    var Destination : ITextCursor);
 
   ITextTyper = interface
     function GetRequestTextDestination : TRequestTextDestination;
     Procedure SetRequestTextDestination(Const RequestTextDestination : TRequestTextDestination);
-    procedure WriteLetter(Const Destination : TText);
+    procedure WriteLetter(Const Destination : ITextCursor);
 
     Procedure Start;
     Procedure Stop;
@@ -75,67 +96,180 @@ type
   private
     FTextIterator : ITextIterator;
     FTimer : TTimer;
-    fDestination : TText;
+    fDestination : ITextCursor;
     FRequestTextDestination : TRequestTextDestination;
+    fBeforeLetter : TNotifyEvent;
   protected
      function GetRequestTextDestination : TRequestTextDestination;
      Procedure SetRequestTextDestination(Const RequestTextDestination : TRequestTextDestination);
      Procedure OnTimer(Sender : TObject);
-     procedure WriteLetter(Const Destination : TText);
+     procedure WriteLetter(Const Destination : ITextCursor);
 
   public
     Procedure Start;
     Procedure Stop;
     Constructor Create(Const TextIterator : ITextIterator);
     Destructor Destroy; Override;
-
   end;
 
-   TTextCursor = class(TText)
 
 
+
+   TTextCursor = class(TText,ITextCursor)
    private
+     fCursorText : TText;
      fTimer : TTimer;
      fCursor : String;
+     fVisible : boolean;
      fCursorIdx : integer; //position of cursor;
+    // procedure SetData(const Value: TValue); override;
+      procedure SetText(const Value : String);
+      function getTextSettings : TTextSettings;
    protected
-     Procedure DisplayCursor(Sender : TObject);
+     Procedure DisplayCursor;
+     Procedure removeCursor;
+     Procedure SetCursor(Sender : TObject);
    public
      constructor Create(aOwner : TComponent);Override;
      destructor destroy;Override;
+
    end;
 
 
+   //handling chains of text
+   ITextTyperController = interface
+     Procedure AddDestination(Const destination : TText);
+     Procedure Start; //start typing;
+     Procedure Stop;  //stop typing;
+   end;
+
+
+   TTextTyperController = class(TInterfacedObject,ITextTyperController)
+   private
+     fItems : TObjectList<TText>;
+   protected
+
+   public
+     Procedure AddDestination(Const destination : TText);
+     Procedure Start; //start typing;
+     Procedure Stop;  //stop typing;
+     Constructor Create;
+     Destructor Destroy; override;
+   end;
+
+   //simple factory of a basic typer
+  function getTyper(const text : String) : ITextTyper;
 
 implementation
+
+function getTyper(const text : String) : ITextTyper;
+begin
+  result := TTextTyper.create( TTextIterator.create(Text));
+end;
+
+
+Procedure TTextTyperController.AddDestination(Const destination : TText);
+begin
+
+end;
+
+Procedure TTextTyperController.Start;
+begin
+
+end;
+
+Procedure TTextTyperController.Stop;
+begin
+
+end;
+
+Constructor TTextTyperController.Create;
+begin
+
+end;
+
+Destructor TTextTyperController.Destroy;
+begin
+
+end;
+
+  procedure TTextCursor.SetText(const Value : String);
+  var
+    fText : String;
+    i : integer;
+  begin
+    //because the cursor  might be running at different frame-rates = remove it, then if needed add it back in
+
+    fText := Value;
+    if (pos('|',fText) > 0) then
+    begin
+      fText := Value;
+      for I := 1 to length(fText) do
+      begin
+        if ftext[i] = '|' then delete(fText,i,1);
+      end;
+    end;
+    Text := FText;
+    if fCursor = '|' then Text := Text + fCursor;  //add it back in if neccessary
+  end;
+
+
+  Procedure TTextCursor.removeCursor;
+  var
+    i : integer;
+    fText : String;
+  begin
+    if (pos('|',Text) > 0) then
+    begin
+      fText := Text;
+      for I := 1 to length(Text) do
+      begin
+        if ftext[i] = '|' then delete(fText,i,1);
+      end;
+      Text := FText;
+    end;
+  end;
+
+  Procedure TTextCursor.DisplayCursor;
+  begin
+    RemoveCursor;  //remove previous cursor;
+    Text := Text + fCursor;
+  end;
+
+  function TTextCursor.getTextSettings : TTextSettings;
+  begin
+    result := self.TextSettings;
+  end;
 
   constructor TTextCursor.Create(aOwner : TComponent);
   begin
     inherited create(aOwner);
     fTimer := TTimer.create(aOwner);
-    fTimer.Interval := 250;
-    fTimer.OnTimer := DisplayCursor;
+    fTimer.Interval := 100;
+    fTimer.OnTimer := SetCursor;
     fCursor := '';
     TextSettings.VertAlign := TTextAlign.Leading;
     TextSettings.HorzAlign := TTextAlign.Leading;
 
+    fCursorText := TText.create(Self);
+    fCursorText.Align := TAlignLayout.Client;
+    fCursorText.TextSettings := Self.TextSettings;
+    addObject(fCursorText);
   end;
 
 
-  Procedure TTextCursor.DisplayCursor(Sender : TObject);
+
+  Procedure TTextCursor.SetCursor(Sender : TObject);
   begin
     if fCursor = '' then
     begin
       fCursor := '|';
-      text := Text + fCursor;
-      fCursorIdx := pos('|',text); //record position of it
     end
     else
     begin
       fCursor := '';
-      Text := copy(Text,0,fCursorIdx-1) + copy(Text,fCursorIdx+1,Length(Text)-1);
     end;
-
+    DisplayCursor;
   end;
 
   Destructor TTextCursor.destroy;
@@ -177,7 +311,7 @@ end;
 
  end;
 
- procedure TTextTyper.WriteLetter(Const Destination : TText);
+ procedure TTextTyper.WriteLetter(Const Destination : ITextCursor);
  begin
    if FTextIterator.getNext then
      Destination.text := Destination.Text + FTextIterator.Letter;
@@ -271,33 +405,4 @@ end;
  end;
 
 end.
-
-Usage
-
-procedure TForm8.Button2Click(Sender: TObject);
-var
-  TextCursor : TTextCursor;
-
-begin
-
-
-  TextCursor := TTextCursor.create(Self);
-  TextCursor.TextSettings.FontColor := TalphaColorRec.white;
-  TextCursor.Width := 300;
-  TextCursor.Height := 300;
-  addObject(TextCursor);
-
-
-  FTextIter := TTextIterator.create('#1 Some text');
-  FTextTyper := TTextTyper.create(FTextIter);
-  FTextTyper.TextDestination := procedure(Sender : ITextTyper; var Destination : TText)
-  begin
-    Destination :=  TextCursor;
-  end;
-  FTextTyper.Start;
-
-
-end;
-
-
 
