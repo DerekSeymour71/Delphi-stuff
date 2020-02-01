@@ -1,6 +1,5 @@
-//twitch demo of previous code  https://www.twitch.tv/videos/543918630
 unit uCircle;
- 
+//twitch demo of code  https://www.twitch.tv/videos/543918630
 
 interface
 
@@ -55,15 +54,18 @@ type
 
    ITextTyper = interface;
 
-   TRequestTextDestination = reference to procedure(Sender : ITextTyper; var Destination : TText);
+   TRequestTextDestination = reference to procedure(Sender : ITextTyper;
+                                                    var Destination : TText);
 
   ITextTyper = interface
     function GetRequestTextDestination : TRequestTextDestination;
     Procedure SetRequestTextDestination(Const RequestTextDestination : TRequestTextDestination);
     procedure WriteLetter(Const Destination : TText);
+
     Procedure Start;
     Procedure Stop;
     property TextDestination : TRequestTextDestination read GetRequestTextDestination  write SetRequestTextDestination;
+
   end;
 
 
@@ -89,11 +91,58 @@ type
 
   end;
 
+   TTextCursor = class(TText)
 
+
+   private
+     fTimer : TTimer;
+     fCursor : String;
+     fCursorIdx : integer; //position of cursor;
+   protected
+     Procedure DisplayCursor(Sender : TObject);
+   public
+     constructor Create(aOwner : TComponent);Override;
+     destructor destroy;Override;
+   end;
 
 
 
 implementation
+
+  constructor TTextCursor.Create(aOwner : TComponent);
+  begin
+    inherited create(aOwner);
+    fTimer := TTimer.create(aOwner);
+    fTimer.Interval := 250;
+    fTimer.OnTimer := DisplayCursor;
+    fCursor := '';
+    TextSettings.VertAlign := TTextAlign.Leading;
+    TextSettings.HorzAlign := TTextAlign.Leading;
+
+  end;
+
+
+  Procedure TTextCursor.DisplayCursor(Sender : TObject);
+  begin
+    if fCursor = '' then
+    begin
+      fCursor := '|';
+      text := Text + fCursor;
+      fCursorIdx := pos('|',text); //record position of it
+    end
+    else
+    begin
+      fCursor := '';
+      Text := copy(Text,0,fCursorIdx-1) + copy(Text,fCursorIdx+1,Length(Text)-1);
+    end;
+
+  end;
+
+  Destructor TTextCursor.destroy;
+  begin
+    fTimer.free;
+    inherited destroy;
+  end;
 
  function TTextTyper.GetRequestTextDestination : TRequestTextDestination;
  begin
@@ -223,15 +272,32 @@ end;
 
 end.
 
+Usage
 
-Example usage = slightly different than before
+procedure TForm8.Button2Click(Sender: TObject);
+var
+  TextCursor : TTextCursor;
 
-  FTextIter := TTextIterator.create('Some text');  //create an iterator for text;
-  FTextTyper := TTextTyper.create(FTextIter);      //create a typer and inject the iterator
-  
-  //here is when the typer needs to put the text somewhere, it calls this method - expecting a destination to be legit.
+begin
+
+
+  TextCursor := TTextCursor.create(Self);
+  TextCursor.TextSettings.FontColor := TalphaColorRec.white;
+  TextCursor.Width := 300;
+  TextCursor.Height := 300;
+  addObject(TextCursor);
+
+
+  FTextIter := TTextIterator.create('#1 Some text');
+  FTextTyper := TTextTyper.create(FTextIter);
   FTextTyper.TextDestination := procedure(Sender : ITextTyper; var Destination : TText)
   begin
-    //Destination :=  Text1;
+    Destination :=  TextCursor;
   end;
   FTextTyper.Start;
+
+
+end;
+
+
+
