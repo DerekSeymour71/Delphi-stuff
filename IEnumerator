@@ -1,0 +1,23 @@
+unit IEnumerator;
+
+interface
+
+uses
+  Sysutils;
+
+type
+
+  IEnumerator<T> = interface
+  ['{2EC4F831-61C7-4CD1-952E-356D6BEE0BD6}']
+    Procedure reset;
+    function GetCurrent: T;
+    function MoveNext: Boolean;
+    property Current: T read GetCurrent;
+    Property Next : Boolean read MoveNext;
+  end;
+
+
+
+implementation
+
+end.
