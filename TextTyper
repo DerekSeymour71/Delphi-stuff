@@ -1,28 +1,216 @@
 unit TextTyper;
 
 
-(* so version 1 of component. What I've noticed, so far, when you drag the control onto the fmx form, it also drops the internal timer onto the form
-   which isn't groovy 
-   
-   But, it's a start. 
-   
+unit Text1;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, FMX.Types, FMX.Controls, FMX.Objects,
+  fmx.graphics,
+
+   UiTypes;
+
+
+   (* so version 1 of component. What I've noticed, so far, when you drag the control onto the fmx form, it also drops the internal timer onto the form
+
+   which isn't groovy
+
+   But, it's a start.
+
    I've had to hack this code quite a lot because I'm using an older version of the FMX framework, using Delphi starter edition, and I don
    t have access to the underlying code - so I've kind of made it up as I went along.
-   
+
    One problem I encountered - I couldn't find (or override) the setText method of the TText component....so I basically had to hijack it
-   in a pretty disgusting manner. As the cursor is flashing and displaying at different intervals to the text actually being typed, 
+   in a pretty disgusting manner. As the cursor is flashing and displaying at different intervals to the text actually being typed,
    you need to remove from the text the previously previously typed cursor....and then redisplay it - if you have to (i.e. it's visible)
-   
+
    It's OK for now.
-   
+
    However, whilst I was playing around with an idea to have a chain of typers displaying blocks of seperate code, it occured to me
    that the color of the cursor will always be white, whereas currently, it is the same color as the actual font of the TText.
-   
-   So...with that in mind, what I was thinking was layering a cursor over the top of the text....ha. So it would observe the underlying 
+
+   So...with that in mind, what I was thinking was layering a cursor over the top of the text....ha. So it would observe the underlying
    text but insert into itself a blank space for the text....this will make more sense when I finish this project, and get a video
    up and running of what I finally hope to achieve.
-   
+
  *)
+
+type
+
+   ITextCursor = interface
+     function GetShowCursor : Boolean;
+     procedure SetShowCursor(Const value : Boolean);
+
+     procedure setWidth(const Value : Single);
+     function getWidth : Single;
+
+     procedure setHeight(const Value : Single);
+     function getHeight : Single;
+
+     function getTextSettings : TTextSettings;
+     procedure SetText(const Value : String);
+     Procedure DisplayCursor;
+   // Procedure removeCursor;
+     function  GetText : String;
+     property  Text : String read getText write setText;
+     Property TextSettings : TTextSettings read getTextSettings;
+     Property Width : Single read getWidth write setWidth;
+     Property Height : Single read getHeight write setHeight;
+     Property ShowCursor : Boolean read GetShowCursor write SetShowCursor;
+   end;
+
+
+  TTextCursor = class(TText,ITextCursor)
+  private
+     fShowCursor : boolean;
+     fCursorText : TText;
+     fTimer : TTimer;
+     fCursor : String;
+     fVisible : boolean;
+     fCursorIdx : integer; //position of cursor;
+    // procedure SetData(const Value: TValue); override;
+      procedure SetText(const Value : String);
+      function getTextSettings : TTextSettings;
+   protected
+     Procedure DisplayCursor;
+     function GetShowCursor : Boolean;
+     procedure SetShowCursor(Const value : Boolean);
+     Procedure SetCursor(Sender : TObject);
+   public
+     constructor Create(aOwner : TComponent);Override;
+     destructor destroy;Override;
+
+   end;
+
+
+procedure Register;
+
+implementation
+
+
+(* I think this procedure deserves at least *some* explanation
+
+  as the timer for the cursor is ticking along, it's changing whether or not its visible, regardless of what text is visible.
+  
+  Cool.
+  
+  However, when the text is being altered you always want to ensure the text is before the cursor -- if the cursor is visible.
+  
+  
+  on top of that, when you are typing, and the cursor isn't visible - then it needs to be made visible but only for the last char
+  
+  This all about the appearance *)
+
+    procedure TTextCursor.SetText(const Value : String);
+  var
+    fText : String;
+    i : integer;
+  begin
+    //because the cursor  might be running at different frame-rates = remove it, then if needed add it back in
+
+    fText := Value;
+    if (pos('|',fText) > 0) then 
+    begin
+      fText := Value;
+      for I := 1 to length(fText) do
+      begin
+        if ftext[i] = '|' then delete(fText,i,1);
+      end;
+      if fCursor = '|' then Text := Text + fCursor;  //add it back in if neccessary
+    end
+    else
+    begin
+      fCursor := '|';
+      fText := fText + fCursor;
+    end;
+    Text := FText;
+  end;
+
+  (*
+  Procedure TTextCursor.removeCursor;
+  var
+    i : integer;
+    fText : String;
+  begin
+    if (pos('|',Text) > 0) then
+    begin
+      fText := Text;
+      for I := 1 to length(Text) do
+      begin
+        if ftext[i] = '|' then delete(fText,i,1);
+      end;
+      Text := FText;
+    end;
+  end;
+   *)
+
+  function TTextCursor.GetShowCursor : Boolean;
+  begin
+    result := fShowCursor;
+  end;
+
+  procedure TTextCursor.SetShowCursor(Const value : Boolean);
+  begin
+    fShowCursor := Value;
+  end;
+
+
+  Procedure TTextCursor.DisplayCursor;
+  begin
+    if fShowCursor then
+      SetText(Text + FCursor);
+  end;
+
+  function TTextCursor.getTextSettings : TTextSettings;
+  begin
+    result := self.TextSettings;
+  end;
+
+  constructor TTextCursor.Create(aOwner : TComponent);
+  begin
+    inherited create(aOwner);
+    fShowCursor := false;
+    fTimer := TTimer.create(aOwner);
+    fTimer.Interval := 500;
+    fTimer.OnTimer := SetCursor;
+    fCursor := '';
+    TextSettings.VertAlign := TTextAlign.Leading;
+    TextSettings.HorzAlign := TTextAlign.Leading;
+
+    fCursorText := TText.create(Self);
+    fCursorText.Align := TAlignLayout.Client;
+    fCursorText.TextSettings := Self.TextSettings;
+    addObject(fCursorText);
+  end;
+
+
+
+  Procedure TTextCursor.SetCursor(Sender : TObject);
+  begin
+    if fCursor = '' then
+    begin
+      fCursor := '|';
+    end
+    else
+    begin
+      fCursor := '';
+    end;
+    DisplayCursor;
+  end;
+
+  Destructor TTextCursor.destroy;
+  begin
+    fTimer.free;
+    inherited destroy;
+  end;
+
+procedure Register;
+begin
+  RegisterComponents('Samples', [TTextCursor]);
+end;
+
+end.
 
 interface
 
