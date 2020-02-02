@@ -1,0 +1,52 @@
+unit ICustomEnumerator;
+
+interface
+
+uses
+  sysutils,
+  IEnumerator;
+
+Type
+
+  TForEach<T> = reference to procedure (Item : T; var ConditionMet : Boolean);
+  IEnumerables<T> = Interface(IEnumerator<T>)
+  ['{D373F64A-0C31-452F-888D-4426E044BCD8}']
+    Function getCount : integer;
+    Procedure SetOnGetCurrent(Const Action : TProc<T>);
+    Function GetOnGetCurrent : TProc<T>;
+    Procedure SetOnScroll(Const Action : TProc<T>);
+    Function GetOnScroll : TProc<T>;
+    Procedure DoOnScroll;
+    Procedure ForEach(Const Action : TProc<T>);
+    Procedure ForEachUntil(Const Action : TForEach<T>);
+    Function From(Const Item : T) : IEnumerables<T>;
+    function Where(Const Filter : TPredicate<T>): IEnumerables<T>; Overload;
+    Function Contains(Const Item : T) : Boolean;
+    Function AsArray : Tarray<T>;
+    Function indexOf(Const Item : T) : integer;
+    Property Count : integer read getCount;
+
+  end;
+
+
+  INavigator<T> = Interface(IEnumerator<T>)
+    Function MoveTo(Const Index : integer) : boolean;
+    Function getIndex : integer;
+    Function GetFirst : Boolean;overload;
+    Function GetPrev : Boolean; overload;
+    Function GetLast : Boolean;overload;
+    Function Getfirst(Where : TPredicate<T>) : boolean; overload;
+    Function GetNext(Where : TPredicate<T>) : boolean; Overload;
+    Function GetPrev(Where : TPredicate<T>) : boolean; Overload;
+
+    Property Index : integer read getIndex;
+    Property First : Boolean read getFirst;
+    Property Prev : Boolean read getPrev;
+    Property Next : Boolean read MoveNext;
+    Property Last : Boolean read getLast;
+  End;
+
+
+implementation
+
+end.
