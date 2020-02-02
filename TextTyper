@@ -173,7 +173,7 @@ implementation
   begin
     inherited create(aOwner);
     fShowCursor := false;
-    fTimer := TTimer.create(aOwner);
+    fTimer := TTimer.create(Self); //oh dude... how did you miss this? >---- must have been thinking of liverpool beating southamptom //fTimer := TTimer.create(aOwner);
     fTimer.Interval := 500;
     fTimer.OnTimer := SetCursor;
     fCursor := '';
