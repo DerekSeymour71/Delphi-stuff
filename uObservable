@@ -1,0 +1,82 @@
+unit uObservable;
+
+interface
+
+uses
+  generics.collections;
+
+type
+
+   IObserver = Interface
+     Procedure RecieveChange(Const Sender : TObject;Const PropertyName : String);
+   End;
+
+   IObservable = interface
+     Procedure SendChange(Const Sender : TObject; Const PropertyName : String);
+     Procedure AddObserver(Const Observer : IObserver);
+     Procedure RemoveObserver(Const Observer : IObserver);
+     Procedure AlertListeners;
+   end;
+
+   TObserver = class(TInterfacedObject,IObserver)
+     Procedure RecieveChange(Const Sender : TObject; Const PropertyName : String); Virtual;Abstract;
+   end;
+
+   TObservers = TList<IObserver>;
+
+   TObservable = class(TinterfacedObject, IObservable)
+   strict private
+     fObservers : TObservers;
+   protected
+
+   public
+     Procedure AddObserver(Const Observer : IObserver); Virtual;
+     Procedure RemoveObserver(Const Observer : IObserver); Virtual;
+     Procedure SendChange(Const Sender : TObject; Const PropertyName : String); Virtual;
+     Procedure AlertListeners;
+     Constructor Create; Virtual;
+     Destructor Destroy;Override;
+     Property Observers : TObservers read fObservers;
+   end;
+
+implementation
+
+
+  Procedure TObservable.AddObserver(Const Observer : IObserver);
+  begin
+    if not FObservers.Contains(Observer) then
+      Observers.Add(Observer);
+  end;
+
+  Procedure TObservable.RemoveObserver(Const Observer : IObserver);
+  begin
+    Observers.remove(Observer);
+  end;
+
+  Procedure TObservable.SendChange(Const Sender : TObject;Const PropertyName : String);
+  var
+    Observer : IObserver;
+  begin
+    for Observer in fObservers do
+    begin
+      Observer.RecieveChange(Sender,PropertyName);
+    end;
+  end;
+
+procedure TObservable.AlertListeners;
+begin
+  SendChange(self,'');
+end;
+
+Constructor  TObservable.Create;
+  begin
+    fobservers := TList<IObserver>.create;
+  end;
+
+  Destructor  TObservable.Destroy;
+  begin
+    observers.Free;
+    Inherited;
+  end;
+
+end.
