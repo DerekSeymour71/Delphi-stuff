@@ -100,7 +100,9 @@ implementation
   
   on top of that, when you are typing, and the cursor isn't visible - then it needs to be made visible but only for the last char
   
-  This all about the appearance *)
+  This all about the appearance
+  
+  I wasn't really aware of any of this when I started -- but I am now - and will adjust accordingly this proc and how it happens*)
 
     procedure TTextCursor.SetText(const Value : String);
   var
