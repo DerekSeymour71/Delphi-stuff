@@ -1,0 +1,31 @@
+unit INodeStacks;
+
+interface
+
+uses
+  sysutils, IComposite,ICustomEnumerator;
+
+Type
+
+  INodeStack<T> = interface
+    Function Reverse : INodeStack<T>;
+    Procedure ForEachUntil(Const Condition : TFunc<T,Boolean>);
+    Procedure ForEach(Const operation : TProc<T>);
+    Function Where(Const Condition : TFunc<T,Boolean>) : INodeStack<T>;
+    Function From(Const Node : T) : INodeStack<T>;
+    Function GetCount : Integer;
+    Procedure Clear;
+    Procedure Push(Const Node : T);
+    Function Pop : T;
+    Function  Peek : T;
+    Function GetBottom : T;
+    Property Count : integer read GetCount;
+    Property Bottom : T read GetBottom;
+  end;
+
+
+
+
+implementation
+
+end.
