@@ -1,0 +1,414 @@
+unit TypeWriter;
+
+interface
+uses
+   classes,
+   sysutils,
+   types,
+   FMX.Types,
+   Fmx.Objects,
+   FMX.Controls,
+   UiTypes,
+   FMX.Graphics,  fmx.textLayout,
+   generics.collections, TextIterator, iGetText;
+
+type
+
+  ITypeWriter = interface(IText)
+  ['{BE0E2692-3D63-4239-B61C-7D0635A1C91F}']
+    Function GetTextLayout : TTextLayout;
+    Function getTextWidth : Single;
+    Procedure setCursorBlinkRate(Const Blink : Cardinal);
+    Function getCursorBlinkRate : Cardinal;
+    Function GetShowCursor : Boolean;
+    Procedure SetShowCursor(Const value : Boolean);
+    Procedure DisplayCursor;
+    Procedure DisplayText;
+    Procedure SetTyperText;
+    Function  getTextSettings : TTextSettings;
+    Procedure DisplayOn(aOwner : TFMXObject);
+    Procedure Load(Const FileName : String);
+  end;
+
+  TOnStopTyping = reference to procedure(const Sender : ITypeWriter);
+
+
+
+
+  //don't change this to TText as can't access the text properties as private;
+   TTypeWriter = class(TRectangle,ITypeWriter,IText)
+   const
+     cVisibleCursor = '|';
+     cNullCursor = '';
+   private
+    FTextSettings : TTextSettings;
+    fOnStopTyping : TOnStopTyping;
+    fTextIter : ITextIterator;
+    fTextTimer : TTimer;
+    fText :  TText;
+    fShowCursor : Boolean;
+    fCursor : String;
+    fCursorTimer : TTimer;
+    fStarted : boolean;
+    FTextLayout : TTextLayout; //full text
+    FCurrentLineLayout : TTextLayout;
+    FCursorLayout : TTextLayout;  //cursors' text
+
+    fTextPath: TPathData;
+    fTransform : TTransform;
+    fDirection : TDirection;
+    FReverse : Boolean;
+    fPoint : TPointf;
+  protected
+
+    Function getReverse : Boolean;
+    procedure SetReverse(Const value : boolean);
+    function getDirection : TDirection;
+    procedure setDirection(Const value : TDirection);
+    function getTextWidth : Single;
+    Procedure SetOnStopTyping(Const value : TOnStopTyping);
+    function getOnStopTyping : TOnStopTyping;
+    Procedure  SetCursorVisible(Const value : boolean);
+    function  getCursorVisible : Boolean;
+    Procedure BlinkCursor;
+    procedure setCursorBlinkRate(Const Blink : Cardinal);
+    function getCursorBlinkRate : Cardinal;
+    procedure paint;Override;
+    function  GetText : String;
+    procedure SetText(const Value : String);
+    Function GetShowCursor : Boolean;
+    Procedure SetShowCursor(Const value : Boolean);
+    Procedure DisplayCursor;
+    Procedure DisplayText;
+    Procedure SetTyperText;
+    Procedure OnTextTimer(Sender :  TObject);
+    Procedure OnCursorTimer(Sender : TObject);
+    function getTextSettings : TTextSettings;
+    Function GetTextLayout : TTextLayout;
+  public
+    Procedure Load(Const FileName : String);
+    Procedure Start;
+    Procedure Stop;
+    Constructor Create(aOwner : TComponent);Override;
+    Destructor Destroy;Override;
+    Procedure DisplayOn(aOwner : TFMXObject);
+  published
+    //Property Direction : TDirection read getDirection write setDirection;
+    Property Reverse : Boolean read getReverse write SetReverse;
+    Property Text : String read GetText write SetText;
+    Property TextSettings : TTextSettings read getTextSettings;
+    Property CursorBlinkRate : Cardinal read getCursorBlinkRate write setCursorBlinkRate;
+    Property ShowCursor : Boolean read GetShowCursor write SetShowCursor;
+    Property OnStopTyping : TOnStopTyping read getOnStopTyping write SetOnStopTyping;
+  end;
+
+procedure Register;
+
+implementation
+
+Constructor TTypeWriter.Create(aOwner : TComponent);
+ begin
+   inherited create(aOwner);
+
+   Fill.Color := TAlphaColorRec.black;
+
+   FTextLayout := TTextLayoutManager.DefaultTextLayout.Create;
+   FCurrentLineLayout := TTextLayoutManager.DefaultTextLayout.Create;
+   FCursorLayout := TTextLayoutManager.DefaultTextLayout.Create;
+
+   fText :=  TText.create(Self);
+   fText.Stored := false;
+   //fText.TextSettings.
+   fText.Text := 'Some text';
+   fText.Align := TAlignLayout.client;
+   fText.TextSettings.VertAlign := TTextAlign.Leading;
+   fText.TextSettings.FontColor := TAlphaColorRec.White;
+   fText.TextSettings.HorzAlign := TTextAlign.Leading;
+   fText.TextSettings.Font.Size := 20;
+   fText.HitTest := false;
+   fText.Parent := self;
+
+   fTextIter := TTextIterator.create(Self as IText);
+   fTextTimer := TTimer.create(Self);
+   fTextTimer.interval := 500;
+   fTextTimer.Enabled := false;
+   fTextTimer.OnTimer := Self.OnTextTimer;
+
+   fShowCursor := true;
+   fCursorTimer := TTimer.create(Self);
+   fCursorTimer.Enabled := False;
+   fCursorTimer.Interval := 250;
+   fCursorTimer.OnTimer := OnCursorTimer;
+
+   fTextPath := TPathData.create;
+   FTransform := TTransform.create;
+
+   FTextSettings := TTextSettings.create(Self);
+   fPoint := pointf(0,0);
+ end;
+
+ Destructor TTypeWriter.Destroy;
+ begin
+   fTextTimer.free;
+   fCursorTimer.free;
+   fText.free;
+   FTextLayout.free;
+   FCursorLayout.free;
+   fTextPath.free;
+   fTransform.free;
+   FTextSettings.free;
+   inherited destroy;
+ end;
+
+  Procedure TTypeWriter.Load(Const FileName : String);
+  var
+    Strings : TStringList;
+
+  begin
+    if FileExists(FileName) then
+    begin
+      Strings := TStringList.create;
+      try
+        Strings.LoadFromFile(FileName);
+        fText.Text := Strings.Text;
+      finally
+        Strings.free;
+      end;
+    end;
+  end;
+
+  Function TTypeWriter.getReverse : Boolean;
+  begin
+    result := fReverse;
+  end;
+
+  procedure TTypeWriter.SetReverse(Const value : boolean);
+  begin
+    fReverse := Value;
+  end;
+
+  function TTypeWriter.getDirection : TDirection;
+  begin
+    result := FDirection;
+  end;
+
+  Function TTypeWriter.GetTextLayout : TTextLayout;
+  begin
+    result := FTextLayout;
+  end;
+
+  procedure TTypeWriter.setDirection(Const value : TDirection);
+  begin
+    fDirection := Value;
+  end;
+
+  Procedure TTypeWriter.SetOnStopTyping(Const value : TOnStopTyping);
+  begin
+    fOnStopTyping := Value;
+  end;
+
+  function TTypeWriter.getOnStopTyping : TOnStopTyping;
+  begin
+    result := fOnStopTyping;
+  end;
+
+  procedure TTypeWriter.setCursorBlinkRate(Const Blink : Cardinal);
+  begin
+    fCursorTimer.Interval := Blink;
+  end;
+
+  function TTypeWriter.getCursorBlinkRate : Cardinal;
+  begin
+    result := fCursorTimer.Interval;
+  end;
+
+
+  Procedure TTypeWriter.SetTyperText;
+  begin
+     // Canvas.Clear(TAlphaColorRec.Black);
+      FTextLayout.text := '';
+      if fDirection = TDirection.FromBeginning then
+      begin
+
+        if fTextIter.getNext then
+        begin
+          fTextLayout.Text := Copy(fText.text,0,fTextIter.Index);
+          SetCursorVisible(True); //always have a | whilst active cursor
+        end
+        else
+        begin
+          fTextLayout.Text := FText.text;
+
+          if fReverse then fDirection := TDirection.FromEnd
+          else
+            Stop;
+        end;
+      end
+      else
+      begin  //from end
+        if fTextIter.getPrev then
+        begin
+          fTextLayout.Text := Copy(fText.text,0,fTextIter.Index);
+          SetCursorVisible(True); //always have a | whilst active cursor
+        end
+        else
+        begin
+          fTextLayout.Text := '';//FText.text;
+          Stop;
+        end;
+      end;
+ end;
+
+ Procedure TTypeWriter.SetCursorVisible(Const value : boolean);
+ begin
+    if value then fCursor := cVisibleCursor
+    else
+      fCursor := cNullCursor;
+ end;
+
+ function TTypeWriter.getCursorVisible : Boolean;
+ begin
+   result := fCursor = cVisibleCursor;
+ end;
+
+ Procedure TTypeWriter.BlinkCursor;
+ begin
+   SetCursorVisible(not getCursorVisible);
+ end;
+
+  Procedure TTypeWriter.OnCursorTimer(Sender : TObject);
+  begin
+    //if not fStarted then
+    BlinkCursor;
+    repaint;
+  end;
+
+
+
+  Procedure TTypeWriter.OnTextTimer(Sender :  TObject);
+  begin
+    if FStarted then
+    begin
+      SetTyperText;
+
+      repaint;
+    end;
+ end;
+
+  Procedure TTypeWriter.DisplayOn(aOwner : TFMXObject);
+  begin
+    if assigned(aOwner) then
+    begin
+      aOwner.addObject(Self);
+    end;
+  end;
+
+  Procedure TTypeWriter.Start;
+  begin
+    fText.Visible := false;
+    fStarted := true;
+    fTextTimer.Enabled := true;
+    fCursorTimer.Enabled := false;
+  end;
+
+  Procedure TTypeWriter.Stop;
+  begin
+    fStarted := false;
+    fTextTimer.Enabled := false;
+    fCursorTimer.Enabled := true;
+    if assigned(fOnStopTyping) then fOnStopTyping(Self);
+  end;
+
+  function TTypeWriter.getTextSettings : TTextSettings;
+  begin
+    result :=  FTextSettings; //FText.TextSettings;
+  end;
+
+
+  function  TTypeWriter.GetText : String;
+  begin
+    result := fText.text;
+  end;
+
+  procedure TTypeWriter.SetText(const Value : String);
+  begin
+    fText.Text := Value;
+    fTextIter.Reset; //return it index 0;
+  end;
+
+  Procedure TTypeWriter.DisplayText;
+  begin
+    Canvas.Fill.Color := TextSettings.FontColor;//  fText.TextSettings.FontColor; // TAlphaColorRec.white;
+    Canvas.Stroke.Color := TextSettings.FontColor;//fText.TextSettings.FontColor;
+
+    fTextPath.clear;
+    fTextLayout.Font.Assign(fText.TextSettings.Font);
+
+    fTextLayout.Color := TAlphaColorRec.white;
+    fTextLayout.RenderLayout(Canvas);
+   // fTextLayout.ConvertToPath(FTextPath);
+   // Canvas.FillPath(FTextPath, 1);
+   // Canvas.DrawPath(FTextPath, 1);
+  end;
+
+  function TTypeWriter.getTextWidth : Single;
+  begin
+    result := fTextLayout.TextWidth;
+  end;
+
+   Procedure TTypeWriter.DisplayCursor;
+   begin
+      if GetShowCursor then
+      begin
+      //  FTextPath.Clear;
+        FCursorLayout.Text := FCursor;
+        FCursorLayout.Font.Assign(fText.TextSettings.Font);
+        FCursorLayout.Color := TAlphaColorRec.White;
+      //  FCursorLayout.ConvertToPath(FTextPath);
+
+       // FTextPath.ApplyMatrix(FTransform.Matrix.CreateTranslation(GetTextWidth  + 1.5,0));
+        Canvas.Fill.Color := FCursorLayout.Color;
+        Canvas.Stroke.Color :=FCursorLayout.Color;
+       // Canvas.FillPath(FTextPath, 1);
+       // Canvas.DrawPath(FTextPath, 1);
+
+
+
+       FCursorLayout.TopLeft := pointf(getTextWidth + 1.5, (ftextLayout.TextHeight/fPoint.y)); //with a small gap
+
+       FCursorLayout.RenderLayout(Canvas);
+      end;
+   end;
+
+ Function TTypeWriter.GetShowCursor : Boolean;
+ begin
+   result := fShowCursor;
+ end;
+
+ Procedure TTypeWriter.SetShowCursor(Const value : Boolean);
+ begin
+   fShowCursor := Value;
+ end;
+
+procedure TTypeWriter.paint;
+begin
+  inherited;
+  DisplayText;
+  DisplayCursor;
+end;
+
+procedure Register;
+begin
+  RegisterComponents('Samples', [TTypeWriter]);
+end;
+
+
+end.
+
+Need to be able to
+track the position of x,y in the current text;
+
+
+
+
+
