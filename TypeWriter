@@ -222,7 +222,8 @@ Constructor TTypeWriter.Create(aOwner : TComponent);
     result := fCursorTimer.Interval;
   end;
 
-
+  //I'm looking at this and noticing repetition of things, but that's ok, for now...I'm not concerned about ineficiancy at this point
+  //I'm more interested in nutting out the big-picture, and I'll come back to this, eventually.
   Procedure TTypeWriter.SetTyperText;
   begin
      // Canvas.Clear(TAlphaColorRec.Black);
