@@ -1,0 +1,160 @@
+unit TextIterator;
+
+interface
+uses
+  IGetText,
+  types;
+
+type
+
+  // [Color = red] some text [/Color]
+
+  //1 scan
+
+  //ColorIndexStart = 0;
+  //ColorIndexEnd = 10;
+  //Color = red;
+
+
+  ITextIterator = interface
+     Procedure Reset;
+     function getCurrent : String;
+     Function GetIndex : integer;
+     Function getNext : Boolean;
+     Function getPrev : Boolean;
+
+     Property Index : integer read getIndex;
+   end;
+
+  TTextIterator = class(TInterfacedObject,ITextIterator)
+  private
+    fIndex : integer;
+    fCurrent : String;
+    [weak] fText : IText;
+
+  protected
+
+  public
+     function getCurrent : String;
+    Function GetIndex : integer;
+    Procedure Reset;
+    Function getNext : Boolean; virtual;
+    Function getPrev : Boolean; virtual;
+    Constructor Create(Const Text : IText);
+  end;
+
+  (* 1 get letter
+     if letter = <
+       skip ahead until letter = >
+
+   *)
+
+
+
+
+
+   TOnPhrase = reference to procedure(Const Sender : ITextIterator;
+                                      Const Phrase : String);
+
+
+
+
+   TPhraseIterator = class(TTextIterator)
+   const
+     cBegin = '[';
+     cEnd = ']';      //wordpress style plugin
+
+   private
+     fOnPhrase : TOnPhrase;
+
+   protected
+     //Procedure BuildPhrase;
+     Function getOnPhrase : TOnPhrase;
+     Procedure setOnPhrase(Const Value : TOnPhrase);
+     Function getNext : Boolean; Override;
+   public
+     property OnPhrase : TOnPhrase read getOnPhrase write setOnPhrase;
+
+   end;
+
+implementation
+
+
+ Function TPhraseIterator.getOnPhrase : TOnPhrase;
+ begin
+   result := fOnPhrase;
+ end;
+
+ Procedure TPhraseIterator.setOnPhrase(Const Value : TOnPhrase);
+ begin
+   fOnPhrase := Value;
+ end;
+
+ Function TPhraseIterator.getNext : Boolean;
+ var
+   phrase : String;
+  // idx : integer; //index before phrase;
+ begin
+   result := inherited getNext;
+   if getCurrent = cBegin then
+   begin
+     //idx :=
+     Phrase := cBegin;
+     while (getNext) and (FCurrent <> cEnd) do //look for end of phrase;
+     begin
+       Phrase := Phrase + fCurrent;
+     end;
+     if fCurrent = cEnd then //move past the end of the phrase
+     begin
+       if assigned(fOnPhrase) then FOnPhrase(self,Phrase + fCurrent); //fCurrent here will be the cEnd token
+       result := inherited getNext;
+     end;
+   end;
+ end;
+
+constructor TTextIterator.Create(Const Text : IText);
+begin
+  inherited create;
+  fText := Text;
+  reset;
+end;
+
+Procedure TTextIterator.Reset;
+begin
+  fIndex := 0;
+  fCurrent := '';
+end;
+
+function TTextIterator.getCurrent : String;
+begin
+  result := fCurrent;
+end;
+
+Function TTextIterator.GetIndex : integer;
+begin
+  result := fIndex;
+end;
+
+
+Function TTextIterator.getNext : Boolean;
+var
+  Text : String;
+begin
+  Text := FText.GetText;
+  inc(FIndex);
+  result := (length(Text) > 0) And (fIndex <= length(Text));
+  if result then fCurrent := Text[fIndex];
+end;
+
+
+Function TTextIterator.getPrev : Boolean;
+var
+  Text : String;
+begin
+  Text := FText.GetText;
+  dec(FIndex);
+  result := (length(Text) > 0) And (fIndex > 0);
+  if result then fCurrent := Text[fIndex];
+end;
+
+end.
